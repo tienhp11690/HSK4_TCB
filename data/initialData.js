@@ -214,4 +214,9 @@ function getAppData() {
 function saveAppData(data) {
   localStorage.setItem("HSK4_CLASS_APP_DATA", JSON.stringify(data));
   localStorage.setItem("HSK4_DATA_VERSION", DATA_VERSION);
+
+  // Tự động đồng bộ lên Google Drive (DB: HSK4_Class_Data.json)
+  if (typeof DriveService !== "undefined" && DriveService.saveCloudDataDebounced) {
+    DriveService.saveCloudDataDebounced(data);
+  }
 }

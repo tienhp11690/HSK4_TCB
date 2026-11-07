@@ -10,35 +10,52 @@
 var FIXED_PARENT_FOLDER_ID = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
 
 /**
- * Endpoint kiểm tra kết nối (GET Request)
+ * Endpoint kiểm tra kết nối & Tải dữ liệu lớp học (GET Request)
  */
 function doGet(e) {
   try {
     var folderId = FIXED_PARENT_FOLDER_ID;
-    var parentName = "HSK4_Parent_Folder";
-    try {
-      var pFolder = getTargetFolder(folderId);
-      if (pFolder) {
-        parentName = pFolder.getName();
+    var pFolder = getTargetFolder(folderId);
+
+    // 1. TẢI TOÀN BỘ DỮ LIỆU LỚP HỌC TRỰC TIẾP TỪ GOOGLE DRIVE (?action=loadData)
+    if (e && e.parameter && e.parameter.action === "loadData") {
+      var files = pFolder.getFilesByName("HSK4_Class_Data.json");
+      if (files.hasNext()) {
+        var content = files.next().getBlob().getDataAsString();
+        return jsonResponse({
+          success: true,
+          data: JSON.parse(content),
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        return jsonResponse({
+          success: false,
+          notFound: true,
+          message: "Chưa có file dữ liệu HSK4_Class_Data.json trên Drive",
+          timestamp: new Date().toISOString()
+        });
       }
-    } catch (errFolder) {
-      Logger.log("Lỗi đọc tên folder: " + errFolder.toString());
     }
 
-    return ContentService.createTextOutput(JSON.stringify({
+    var parentName = "HSK4_Parent_Folder";
+    if (pFolder) {
+      parentName = pFolder.getName();
+    }
+
+    return jsonResponse({
       status: "ok",
       message: "Google Apps Script Web App đang kết nối thành công với Google Drive!",
       parentFolderId: folderId,
       parentFolderName: parentName,
       timestamp: new Date().toISOString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
 
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({
+    return jsonResponse({
       status: "error",
       error: err.toString(),
       timestamp: new Date().toISOString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
   }
 }
 
@@ -206,6 +223,54 @@ function doPost(e) {
         success: true,
         files: filesList
       });
+    }
+
+    // -------------------------------------------------------------
+    // 4. LƯU TOÀN BỘ DỮ LIỆU LỚP HỌC LÊN GOOGLE DRIVE (DB FILE: HSK4_Class_Data.json)
+    // -------------------------------------------------------------
+    if (action === "saveData") {
+      var dataContent = JSON.stringify(requestData.data || {});
+      var files = parentFolder.getFilesByName("HSK4_Class_Data.json");
+      var dataFile;
+      if (files.hasNext()) {
+        dataFile = files.next();
+        dataFile.setContent(dataContent);
+      } else {
+        dataFile = parentFolder.createFile("HSK4_Class_Data.json", dataContent, MimeType.PLAIN_TEXT);
+        try {
+          dataFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
+        } catch (eShare) {}
+      }
+
+      return jsonResponse({
+        success: true,
+        message: "Đã lưu dữ liệu lớp học lên Google Drive thành công!",
+        fileId: dataFile.getId(),
+        fileUrl: dataFile.getUrl(),
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 5. TẢI TOÀN BỘ DỮ LIỆU LỚP HỌC TỪ GOOGLE DRIVE (POST)
+    // -------------------------------------------------------------
+    if (action === "loadData") {
+      var dataFiles = parentFolder.getFilesByName("HSK4_Class_Data.json");
+      if (dataFiles.hasNext()) {
+        var jsonText = dataFiles.next().getBlob().getDataAsString();
+        return jsonResponse({
+          success: true,
+          data: JSON.parse(jsonText),
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        return jsonResponse({
+          success: false,
+          notFound: true,
+          message: "Chưa có file dữ liệu trên Drive",
+          timestamp: new Date().toISOString()
+        });
+      }
     }
 
     return jsonResponse({ success: false, error: "Action không hợp lệ: " + action });

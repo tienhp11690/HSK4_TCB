@@ -26,6 +26,65 @@ const DriveService = {
   },
 
   /**
+   * Tải toàn bộ dữ liệu lớp học từ Google Drive (File HSK4_Class_Data.json)
+   */
+  async loadCloudData() {
+    if (!this.isRealCloudConnected()) return null;
+    const url = this.getScriptUrl();
+    try {
+      const fetchUrl = url + (url.includes("?") ? "&" : "?") + "action=loadData&t=" + Date.now();
+      const response = await fetch(fetchUrl);
+      const res = await response.json();
+      if (res && res.success && res.data) {
+        return res.data;
+      }
+    } catch (e) {
+      console.warn("Không tải được dữ liệu đám mây từ Google Drive:", e);
+    }
+    return null;
+  },
+
+  /**
+   * Lưu toàn bộ dữ liệu lớp học lên Google Drive (File HSK4_Class_Data.json)
+   */
+  async saveCloudData(appData) {
+    if (!this.isRealCloudConnected()) return false;
+    const url = this.getScriptUrl();
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "saveData",
+          data: appData
+        })
+      });
+      const res = await response.json();
+      return res && res.success;
+    } catch (e) {
+      console.warn("Không lưu được dữ liệu lên Google Drive:", e);
+      return false;
+    }
+  },
+
+  // Bộ đệm tự động đồng bộ (1.5s sau thao tác cuối)
+  _saveTimeout: null,
+  saveCloudDataDebounced(appData) {
+    if (this._saveTimeout) clearTimeout(this._saveTimeout);
+    this._saveTimeout = setTimeout(async () => {
+      const ok = await this.saveCloudData(appData);
+      if (ok) {
+        const el = document.getElementById("cloud-sync-status");
+        if (el) {
+          const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          el.innerHTML = `<span class="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-extrabold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full"><i data-lucide="cloud-check" class="w-3 h-3 text-emerald-600"></i> Đã đồng bộ ${timeStr}</span>`;
+          if (window.lucide) lucide.createIcons();
+        }
+      }
+    }, 1500);
+  },
+
+  /**
    * Tạo thư mục buổi học trên Google Drive kèm 4 thư mục con cho 4 học viên
    * @param {Object} lessonInfo: { number, title, date }
    * @param {Array} students: Danh sách 4 học sinh

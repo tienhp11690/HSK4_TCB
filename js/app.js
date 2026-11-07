@@ -46,7 +46,10 @@ function initApp() {
   // 4. Khởi tạo biểu tượng Lucide icons
   refreshIcons();
 
-  console.log("HSK4 Class Manager với định danh thông minh đã khởi chạy!");
+  // 5. Tự động đồng bộ dữ liệu đám mây từ Google Drive khi khởi động
+  syncCloudDataOnStartup();
+
+  console.log("HSK4 Class Manager với định danh thông minh & Cloud Sync đã khởi chạy!");
 }
 
 function refreshIcons() {
@@ -244,6 +247,18 @@ function renderHeaderUserSelector() {
         </div>
       </div>
       
+      <!-- Trạng thái & Nút Đồng bộ Đám mây Drive -->
+      <div id="cloud-sync-status" class="hidden sm:flex items-center">
+        <span class="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-extrabold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+          <i data-lucide="cloud" class="w-3 h-3 text-emerald-600"></i> Cloud Drive
+        </span>
+      </div>
+      <button onclick="manualSyncCloudData()" title="Đồng bộ dữ liệu lớp học mới nhất từ Google Drive"
+        class="flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold py-1.5 px-2.5 rounded-xl border border-blue-200 transition">
+        <i data-lucide="cloud-download" class="w-3.5 h-3.5 text-blue-600"></i>
+        <span class="hidden md:inline">Đồng bộ</span>
+      </button>
+
       <!-- Nút đổi danh tính -->
       <button onclick="openIdentitySelectModal(false)" title="Bấm để đổi người khác"
         class="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold py-1.5 px-2.5 rounded-xl transition">
@@ -3634,15 +3649,35 @@ function openScriptCodeModal() {
   // Điền nội dung code
   const codeArea = document.getElementById("script-code-copy-area");
   if (codeArea) {
-    codeArea.value = `// GOOGLE APPS SCRIPT CHO WEB APP HSK4
+    codeArea.value = `// GOOGLE APPS SCRIPT CHO WEB APP HSK4 (HỖ TRỢ CLOUD DB & AUTO FOLDER)
 var FIXED_PARENT_FOLDER_ID = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
 
 function doGet(e) {
   try {
     var pFolder = getTargetFolder(FIXED_PARENT_FOLDER_ID);
+
+    // 1. TẢI DỮ LIỆU LỚP HỌC (GET ?action=loadData)
+    if (e && e.parameter && e.parameter.action === "loadData") {
+      var files = pFolder.getFilesByName("HSK4_Class_Data.json");
+      if (files.hasNext()) {
+        var content = files.next().getBlob().getDataAsString();
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          data: JSON.parse(content),
+          timestamp: new Date().toISOString()
+        })).setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({
+          success: false,
+          notFound: true,
+          message: "Chưa có file dữ liệu trên Drive"
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
     return ContentService.createTextOutput(JSON.stringify({
       status: "ok",
-      message: "Kết nối thành công với Google Drive!",
+      message: "Google Apps Script Web App kết nối thành công với Google Drive!",
       parentFolderName: pFolder ? pFolder.getName() : "HSK4_Parent",
       timestamp: new Date().toISOString()
     })).setMimeType(ContentService.MimeType.JSON);
@@ -3658,8 +3693,9 @@ function doPost(e) {
       req = JSON.parse(e.postData.contents);
     }
     var action = req.action || "";
-    var parentFolder = getTargetFolder(req.parentFolderId || "18y3IbrKVibG9z9RzgQvVjz-jww54SelP");
+    var parentFolder = getTargetFolder(req.parentFolderId || FIXED_PARENT_FOLDER_ID);
 
+    // TẠO FOLDER BUỔI HỌC
     if (action === "createLessonFolder") {
       var folderName = req.folderName || ("[HSK4] Buổi " + (req.lessonNumber || "1"));
       var lessonFolder = getOrCreateSubFolder(parentFolder, folderName);
@@ -3705,6 +3741,31 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    // LƯU TOÀN BỘ DỮ LIỆU LỚP HỌC LÊN DRIVE (DB)
+    if (action === "saveData") {
+      var dataContent = JSON.stringify(req.data || {});
+      var files = parentFolder.getFilesByName("HSK4_Class_Data.json");
+      var dataFile;
+      if (files.hasNext()) {
+        dataFile = files.next();
+        dataFile.setContent(dataContent);
+      } else {
+        dataFile = parentFolder.createFile("HSK4_Class_Data.json", dataContent, MimeType.PLAIN_TEXT);
+        try { dataFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT); } catch (e) {}
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: true, timestamp: new Date().toISOString() })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // TẢI DỮ LIỆU LỚP HỌC
+    if (action === "loadData") {
+      var dFiles = parentFolder.getFilesByName("HSK4_Class_Data.json");
+      if (dFiles.hasNext()) {
+        var jText = dFiles.next().getBlob().getDataAsString();
+        return ContentService.createTextOutput(JSON.stringify({ success: true, data: JSON.parse(jText) })).setMimeType(ContentService.MimeType.JSON);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: false, notFound: true })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Action không hợp lệ: " + action })).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
@@ -3712,7 +3773,7 @@ function doPost(e) {
 }
 
 function getTargetFolder(customFolderId) {
-  var id = customFolderId || "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
+  var id = customFolderId || FIXED_PARENT_FOLDER_ID;
   try { return DriveApp.getFolderById(id); } catch(e) { return DriveApp.getRootFolder(); }
 }
 
@@ -3786,4 +3847,69 @@ async function syncAllFromDrive() {
   }
   showToast("Đã đồng bộ kiểm tra trạng thái toàn bộ thư mục Google Drive thành công!", "success");
   renderCurrentTab();
+}
+
+/**
+ * Tự động đồng bộ dữ liệu đám mây từ Google Drive khi mở app
+ */
+async function syncCloudDataOnStartup() {
+  if (typeof DriveService === "undefined" || !DriveService.isRealCloudConnected()) return;
+
+  const el = document.getElementById("cloud-sync-status");
+  if (el) {
+    el.innerHTML = `<span class="inline-flex items-center gap-1 text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full"><i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i> Đang tải Drive...</span>`;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  try {
+    const cloudData = await DriveService.loadCloudData();
+    if (cloudData && cloudData.lessons) {
+      // Giữ lại active user ID hiện tại của thiết bị
+      AppState.data = cloudData;
+      localStorage.setItem("HSK4_CLASS_APP_DATA", JSON.stringify(cloudData));
+      renderHeaderUserSelector();
+      renderNavigation();
+      renderCurrentTab();
+      refreshIcons();
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (el) {
+        el.innerHTML = `<span class="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-extrabold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full"><i data-lucide="cloud-check" class="w-3 h-3 text-emerald-600"></i> Đã đồng bộ ${timeStr}</span>`;
+        if (window.lucide) lucide.createIcons();
+      }
+    } else {
+      // Nếu chưa có file dữ liệu trên Drive, tự khởi tạo file DB bằng dữ liệu hiện tại
+      await DriveService.saveCloudData(AppState.data);
+    }
+  } catch (err) {
+    console.warn("Lỗi đồng bộ startup:", err);
+  }
+}
+
+/**
+ * Bấm nút để chủ động đồng bộ dữ liệu lớp học mới nhất từ Google Drive
+ */
+async function manualSyncCloudData() {
+  showToast("Đang đồng bộ dữ liệu mới nhất từ Google Drive...", "info");
+  try {
+    const cloudData = await DriveService.loadCloudData();
+    if (cloudData && cloudData.lessons) {
+      AppState.data = cloudData;
+      localStorage.setItem("HSK4_CLASS_APP_DATA", JSON.stringify(cloudData));
+      renderHeaderUserSelector();
+      renderNavigation();
+      renderCurrentTab();
+      refreshIcons();
+      showToast("Đã đồng bộ dữ liệu đám mây Google Drive thành công 100%!", "success");
+    } else {
+      const saved = await DriveService.saveCloudData(AppState.data);
+      if (saved) {
+        showToast("Đã lưu và đồng bộ dữ liệu lớp học lên Google Drive!", "success");
+      } else {
+        showToast("Chưa kết nối được Google Drive. Hãy kiểm tra tab Cấu hình Drive!", "warning");
+      }
+    }
+  } catch (err) {
+    showToast("Lỗi khi kết nối Google Drive: " + err.message, "error");
+  }
 }
