@@ -3901,10 +3901,23 @@ async function manualSyncCloudData() {
       renderCurrentTab();
       refreshIcons();
       showToast("Đã đồng bộ dữ liệu đám mây Google Drive thành công 100%!", "success");
+      
+      const el = document.getElementById("cloud-sync-status");
+      if (el) {
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        el.innerHTML = `<span class="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-extrabold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full"><i data-lucide="cloud-check" class="w-3 h-3 text-emerald-600"></i> Đã đồng bộ ${timeStr}</span>`;
+        if (window.lucide) lucide.createIcons();
+      }
     } else {
       const saveRes = await DriveService.saveCloudData(AppState.data);
       if (saveRes && saveRes.success) {
         showToast("Đã lưu và đồng bộ dữ liệu lớp học lên Google Drive!", "success");
+        const el = document.getElementById("cloud-sync-status");
+        if (el) {
+          const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          el.innerHTML = `<span class="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-extrabold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full"><i data-lucide="cloud-check" class="w-3 h-3 text-emerald-600"></i> Đã đồng bộ ${timeStr}</span>`;
+          if (window.lucide) lucide.createIcons();
+        }
       } else {
         const errMsg = saveRes && saveRes.error ? saveRes.error : "Chưa cập nhật script mới";
         showToast(`Google Apps Script chưa nhận lệnh saveData (${errMsg}). Hãy làm theo hướng dẫn cập nhật mã nguồn!`, "warning");
