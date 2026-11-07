@@ -1,5 +1,5 @@
 // Dữ liệu ban đầu cho hệ thống quản lý nhóm học tiếng Trung HSK4 (1 GV + 4 HV)
-const DATA_VERSION = "2026.11.07_v2";
+const DATA_VERSION = "2026.11.07_v3_kahoot";
 
 const INITIAL_DATA = {
   version: DATA_VERSION,
@@ -25,14 +25,16 @@ const INITIAL_DATA = {
   },
 
   // Danh sách Giáo viên & 4 Học sinh (Dùng để định danh)
+  // Avatar Kahoot-style: Cô giáo & các bạn nữ (Rose, Blue, Yellow, Purple) + Tien Pham nam (Green)
   users: [
     {
       id: "teacher",
       role: "teacher",
+      gender: "female",
       name: "Sha Sha",
       chineseName: "莎莎老师",
       pinyin: "Shāshā Lǎoshī",
-      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aria&backgroundColor=ffcad4",
       phone: "0988 123 456",
       zalo: "0988 123 456",
       wechat: "shasha_chinese",
@@ -47,11 +49,12 @@ const INITIAL_DATA = {
     {
       id: "student_1",
       role: "student",
+      gender: "female",
       orderNumber: 1,
       name: "Hà Bin",
       chineseName: "小宾",
       pinyin: "Xiǎo Bīn",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mia&backgroundColor=b6e3f4",
       phone: "0912 345 601",
       zalo: "0912 345 601",
       wechat: "habin_hsk",
@@ -67,11 +70,12 @@ const INITIAL_DATA = {
     {
       id: "student_2",
       role: "student",
+      gender: "male",
       orderNumber: 2,
       name: "Tien Pham",
       chineseName: "进范",
       pinyin: "Jìn Fàn",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=c5e8b7",
       phone: "0912 345 602",
       zalo: "0912 345 602",
       wechat: "tienpham_hsk",
@@ -81,17 +85,18 @@ const INITIAL_DATA = {
       attendanceRate: 100, // %
       homeworkRate: 100, // %
       averageGrade: 8.8,
-      notes: "Kỹ năng nghe hiểu tốt, cần trau chuốt thêm thứ tự các liên từ trong câu phức.",
+      notes: "Kỹ năng nghe hiểu tốt, nam tính năng động, cần trau chuốt thêm thứ tự các liên từ trong câu phức.",
       driveFolder: "02_Tien_Pham"
     },
     {
       id: "student_3",
       role: "student",
+      gender: "female",
       orderNumber: 3,
       name: "Xuan Mai",
       chineseName: "春梅",
       pinyin: "Chūn Méi",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lily&backgroundColor=ffdfbf",
       phone: "0912 345 603",
       zalo: "0912 345 603",
       wechat: "xuanmai_hsk",
@@ -107,11 +112,12 @@ const INITIAL_DATA = {
     {
       id: "student_4",
       role: "student",
+      gender: "female",
       orderNumber: 4,
       name: "Trang",
       chineseName: "小庄",
       pinyin: "Xiǎo Zhuāng",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe&backgroundColor=d1d4f9",
       phone: "0912 345 604",
       zalo: "0912 345 604",
       wechat: "trang_hsk",
@@ -121,7 +127,7 @@ const INITIAL_DATA = {
       attendanceRate: 100, // %
       homeworkRate: 100, // %
       averageGrade: 8.6,
-      notes: "Tiếp thu nhanh bài giảng, cần rèn luyện thêm viết chữ Hán và ngữ điệu câu hỏi.",
+      notes: "Tiếp thu nhanh bài giảng, cá tính thời trang, cần rèn luyện thêm viết chữ Hán.",
       driveFolder: "04_Trang"
     }
   ],
@@ -196,7 +202,7 @@ const INITIAL_DATA = {
       reschedule: {
         proposedByUserId: "student_4",
         proposedByName: "Trang",
-        proposedByAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
+        proposedByAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe&backgroundColor=d1d4f9",
         proposedByRole: "Học viên #4",
         reason: "Em phải tham gia cuộc họp quý đột xuất của chi nhánh Techcombank từ 16h30 đến 19h Thứ Tư, em xin phép đề xuất dời sang chiều Thứ Năm cùng giờ (17:00 - 18:30).",
         proposedDate: "2026-11-12", // Dời sang Thứ Năm
@@ -466,7 +472,7 @@ const INITIAL_DATA = {
       lessonNumber: 2,
       userId: "student_2",
       userName: "Tien Pham",
-      userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=c5e8b7",
       userRole: "student",
       userBadge: "Học viên #2",
       content: "Thưa cô Sha Sha, trong bài 2 từ '并且' và '而且' khi nào có thể thay thế cho nhau được ạ? Em thấy trong câu ghép hay dùng cả hai.",
@@ -476,7 +482,7 @@ const INITIAL_DATA = {
           id: "rep_1",
           userId: "teacher",
           userName: "Sha Sha",
-          userAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+          userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aria&backgroundColor=ffcad4",
           userRole: "teacher",
           userBadge: "Giáo viên",
           content: "Chào Tiến! Cả hai đều biểu thị mối quan hệ tăng tiến. Nhưng '并且' thường nối động từ hoặc cụm động từ và hay dùng trong văn viết trang trọng, còn '而且' dùng rất phổ biến cả khẩu ngữ và có thể đi cặp với cấu trúc '不但/不仅...而且...' nhé em!",
@@ -490,7 +496,7 @@ const INITIAL_DATA = {
       lessonNumber: 1,
       userId: "student_3",
       userName: "Xuan Mai",
-      userAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
+      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lily&backgroundColor=ffdfbf",
       userRole: "student",
       userBadge: "Học viên #3",
       content: "Cô ơi bài tập viết đoạn văn 80 chữ về Tình yêu em chụp ảnh bài viết bút mực nộp lên Drive cô xem nét chữ có bị mờ không ạ?",
@@ -500,7 +506,7 @@ const INITIAL_DATA = {
           id: "rep_2",
           userId: "teacher",
           userName: "Sha Sha",
-          userAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+          userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aria&backgroundColor=ffcad4",
           userRole: "teacher",
           userBadge: "Giáo viên",
           content: "Ảnh chụp nét lắm Mai nhé, cô đã xem và sửa chi tiết rồi đó, nét chữ rất đều tay và đẹp!",
@@ -517,7 +523,7 @@ const INITIAL_DATA = {
       type: "reschedule",
       userId: "student_4",
       userName: "Trang",
-      userAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
+      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe&backgroundColor=d1d4f9",
       userBadge: "Học viên #4",
       action: "Báo bận & Đề xuất dời Buổi 4",
       details: "Báo bận Thứ Tư (11/11) do họp quý Techcombank, đề xuất dời sang Thứ Năm (12/11 lúc 17:00 - 18:30).",
@@ -528,7 +534,7 @@ const INITIAL_DATA = {
       type: "submission",
       userId: "student_1",
       userName: "Hà Bin",
-      userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mia&backgroundColor=b6e3f4",
       userBadge: "Học viên #1",
       action: "Đã nộp bài tập Buổi 2",
       details: "Tải lên 2 file (Câu đặt với 陪/并且 và Audio đọc bài khóa 2) lên Google Drive.",
@@ -539,7 +545,7 @@ const INITIAL_DATA = {
       type: "question",
       userId: "student_2",
       userName: "Tien Pham",
-      userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=c5e8b7",
       userBadge: "Học viên #2",
       action: "Đặt câu hỏi cho cô giáo",
       details: "Hỏi về cách phân biệt '并且' và '而且' trong bài 2.",
@@ -550,7 +556,7 @@ const INITIAL_DATA = {
       type: "grading",
       userId: "teacher",
       userName: "Sha Sha",
-      userAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aria&backgroundColor=ffcad4",
       userBadge: "Giáo viên",
       action: "Đã chấm bài & Nhận xét Buổi 1",
       details: "Chấm bài cho Hà Bin (9.5 điểm), Tien Pham (8.5 điểm), Xuan Mai (9.0 điểm), Trang (8.0 điểm).",
@@ -576,7 +582,7 @@ function getAppData() {
     }
   }
 
-  // Tự động load INITIAL_DATA mới nhất (khi đổi lịch, đổi thông tin lớp)
+  // Tự động load INITIAL_DATA mới nhất (khi đổi lịch, đổi thông tin lớp, đổi avatar)
   saveAppData(INITIAL_DATA);
   localStorage.setItem("HSK4_DATA_VERSION", DATA_VERSION);
   return INITIAL_DATA;
