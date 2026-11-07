@@ -704,6 +704,11 @@ function renderLessonCard(lesson, activeUser) {
               <span>Tài Liệu Buổi Học</span>
               <i data-lucide="external-link" class="w-3 h-3 text-indigo-400"></i>
             </a>
+            <button onclick="goToLessonHomework(${lesson.number})" 
+              class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold border border-emerald-200 flex items-center gap-1.5 transition">
+              <i data-lucide="book-open" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>BTVN & Nộp Bài</span>
+            </button>
           ` : `
             <button onclick="createDriveFolderForLesson('${lesson.id}')" id="btn-create-drive-${lesson.id}"
               class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold border border-rose-200 flex items-center gap-1.5 transition">
@@ -1548,10 +1553,22 @@ function renderHomeworkTab(container) {
         <div class="space-y-3.5">
           ${assignments.length > 0 ?
       assignments.map(a => renderAssignmentDetailCard(a, activeUser, isTeacher, students)).join("") :
-      `<div class="bg-white rounded-3xl p-12 text-center text-slate-400 border border-dashed border-slate-200">
-              <i data-lucide="folder-plus" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i>
-              <p class="font-bold text-slate-700 text-sm mb-1">Chưa có bài tập nào được giao</p>
-              <p class="text-xs text-slate-400">Khi cô giáo tạo bài tập mới, hệ thống sẽ tự động tạo thư mục trên Google Drive cho từng học viên nộp bài.</p>
+      `<div class="bg-white rounded-3xl p-8 sm:p-12 text-center text-slate-400 border border-dashed border-slate-200 space-y-4">
+              <i data-lucide="folder-plus" class="w-12 h-12 mx-auto text-rose-400"></i>
+              <div>
+                <p class="font-extrabold text-slate-800 text-sm sm:text-base mb-1">Chưa có bài tập nào trong danh sách</p>
+                <p class="text-xs text-slate-500 max-w-md mx-auto">
+                  ${isTeacher ? 'Cô giáo có thể bấm nút "+ Giao bài tập mới" ở góc trên hoặc bấm nút bên dưới để tự động tạo bài tập từ các buổi học đã có.' : 'Cô giáo chưa giao bài tập về nhà cho lớp. Bạn hãy theo dõi thêm ở tab "Lịch Học" nhé!'}
+                </p>
+              </div>
+              ${AppState.data.lessons.length > 0 ? `
+                <div class="pt-2">
+                  <button onclick="autoCreateAssignmentsFromLessons()" 
+                    class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-rose-200 transition inline-flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i> Tạo nhanh BTVN từ ${AppState.data.lessons.length} Buổi học đã có
+                  </button>
+                </div>
+              ` : ''}
             </div>`
     }
         </div>
@@ -2774,12 +2791,43 @@ async function handleAddNewLesson(e, number) {
   };
 
   AppState.data.lessons.push(newLesson);
-  logActivity("reschedule", `${activeUser.name} đã thêm Buổi học #${number}`, `${title} (${date}) - Đã tạo & gắn link Drive`);
+
+  // TỰ ĐỘNG TẠO BÀI TẬP VỀ NHÀ TƯƠNG ỨNG CHO BUỔI HỌC NÀY
+  const newAssignment = {
+    id: "assign_" + Date.now(),
+    lessonId: newLesson.id,
+    lessonNumber: number,
+    title: `BTVN Buổi ${number}: ${title}`,
+    assignedDate: date || new Date().toISOString().split("T")[0],
+    deadline: date ? `${date} 23:59` : "Hạn nộp buổi học",
+    instructions: notes ? `Trọng tâm buổi học: ${notes}\n\nYêu cầu: Làm bài tập và nộp file ghi âm/hình ảnh vào thư mục cá nhân trên Google Drive.` : `Bài tập về nhà Buổi ${number}: Làm bài tập và nộp file ghi âm/hình ảnh vào thư mục cá nhân trên Google Drive trước buổi học tiếp theo.`,
+    referenceFiles: [],
+    driveFolderUrl: folderInfo.homeworkFolderUrl || folderInfo.folderUrl || AppState.data.classInfo.googleDriveParentFolderUrl,
+    submissions: students.map(s => {
+      const sf = (folderInfo.studentFolders || []).find(item => item.studentId === s.id);
+      return {
+        studentId: s.id,
+        driveFolderUrl: sf ? sf.folderUrl : (folderInfo.homeworkFolderUrl || folderInfo.folderUrl || AppState.data.classInfo.googleDriveParentFolderUrl),
+        driveFolderId: sf ? sf.folderId : null,
+        status: "not_submitted",
+        submittedAt: null,
+        files: [],
+        studentNotes: null,
+        grade: null,
+        teacherFeedback: null,
+        teacherCorrectionFile: null,
+        gradedAt: null
+      };
+    })
+  };
+  AppState.data.assignments.unshift(newAssignment);
+
+  logActivity("reschedule", `${activeUser.name} đã thêm Buổi học #${number}`, `${title} (${date}) - Tự động tạo BTVN & Drive Folder`);
   saveAppData(AppState.data);
   closeModal();
   renderNavigation();
   renderCurrentTab();
-  showToast(`Đã thêm thành công Buổi số ${number}!`, "success");
+  showToast(`Đã thêm thành công Buổi số ${number} và tự động tạo Bài tập về nhà!`, "success");
 }
 
 async function createDriveFolderForLesson(lessonId) {
@@ -3142,6 +3190,72 @@ async function handleRecreateAssignmentDriveFolder(assignmentId) {
   } else {
     showToast("Không tạo được folder trên Google Drive thật. Vui lòng kiểm tra lại Google Apps Script!", "error");
   }
+}
+
+/**
+ * Tự động tạo bài tập về nhà cho các buổi học hiện có nếu chưa có bài tập
+ */
+function autoCreateAssignmentsFromLessons() {
+  const students = AppState.data.users.filter(u => u.role === "student");
+  let createdCount = 0;
+
+  AppState.data.lessons.forEach(l => {
+    const exists = AppState.data.assignments.some(a => a.lessonId === l.id || Number(a.lessonNumber) === Number(l.number));
+    if (!exists) {
+      const newAssign = {
+        id: "assign_" + Date.now() + "_" + l.number,
+        lessonId: l.id,
+        lessonNumber: l.number,
+        title: `BTVN Buổi ${l.number}: ${l.title}`,
+        assignedDate: l.date || new Date().toISOString().split("T")[0],
+        deadline: l.date ? `${l.date} 23:59` : "Hạn nộp buổi học",
+        instructions: l.topicNotes ? `Trọng tâm buổi học: ${l.topicNotes}\n\nYêu cầu: Làm bài tập và nộp file ghi âm/hình ảnh vào thư mục cá nhân trên Google Drive.` : `Bài tập về nhà Buổi ${l.number}: Làm bài tập và nộp file ghi âm/hình ảnh vào thư mục cá nhân trên Google Drive trước buổi học tiếp theo.`,
+        referenceFiles: [],
+        driveFolderUrl: l.homeworkFolderUrl || l.driveFolderUrl || AppState.data.classInfo.googleDriveParentFolderUrl,
+        submissions: students.map(s => {
+          const sf = (l.studentFolders || []).find(item => item.studentId === s.id);
+          return {
+            studentId: s.id,
+            driveFolderUrl: sf ? sf.folderUrl : (l.homeworkFolderUrl || l.driveFolderUrl || AppState.data.classInfo.googleDriveParentFolderUrl),
+            driveFolderId: sf ? sf.folderId : null,
+            status: "not_submitted",
+            submittedAt: null,
+            files: [],
+            studentNotes: null,
+            grade: null,
+            teacherFeedback: null,
+            teacherCorrectionFile: null,
+            gradedAt: null
+          };
+        })
+      };
+      AppState.data.assignments.push(newAssign);
+      createdCount++;
+    }
+  });
+
+  if (createdCount > 0) {
+    saveAppData(AppState.data);
+    renderNavigation();
+    renderCurrentTab();
+    showToast(`Đã tạo xong ${createdCount} bài tập về nhà từ các buổi học hiện có!`, "success");
+  } else {
+    showToast("Tất cả các buổi học hiện có đều đã có bài tập về nhà!", "info");
+  }
+}
+
+/**
+ * Chuyển thẳng sang tab Bài tập và mở bài của buổi tương ứng
+ */
+function goToLessonHomework(lessonNumber) {
+  // Tìm bài tập của buổi này
+  const targetAssign = AppState.data.assignments.find(a => Number(a.lessonNumber) === Number(lessonNumber));
+  if (targetAssign) {
+    if (!AppState.expandedAssignments) AppState.expandedAssignments = {};
+    AppState.expandedAssignments[targetAssign.id] = true;
+  }
+  switchTab("homework");
+  showToast(`Đang mở Bài tập về nhà Buổi #${lessonNumber}`, "info");
 }
 
 // Nộp bài tập
