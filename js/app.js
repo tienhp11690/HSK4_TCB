@@ -1463,7 +1463,7 @@ function renderHomeworkTab(container) {
                   <div class="text-[10px] text-slate-400 font-hanzi">${s.chineseName}</div>
                 </th>
               `).join("")}
-              <th class="py-2.5 px-3 text-right">Folder Drive</th>
+              <th class="py-2.5 px-3 text-right">Folder Drive / Thao tác</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
@@ -1499,9 +1499,20 @@ function renderHomeworkTab(container) {
                     `;
                   }).join("")}
                   <td class="py-3 px-3 text-right">
-                    <a href="${a.driveFolderUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1">
-                      <i data-lucide="external-link" class="w-3 h-3"></i> Mở Drive
-                    </a>
+                    <div class="flex items-center justify-end gap-1.5">
+                      <a href="${a.driveFolderUrl}" target="_blank" title="Mở thư mục trên Google Drive"
+                        class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold inline-flex items-center gap-1 border border-blue-200 transition">
+                        <i data-lucide="external-link" class="w-3 h-3"></i> Drive
+                      </a>
+                      <button onclick="handleRecreateAssignmentDriveFolder('${a.id}')" title="Tạo lại / Đồng bộ Folder Drive cho bài này"
+                        class="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" aria-label="Đồng bộ folder">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                      </button>
+                      <button onclick="handleDeleteAssignment('${a.id}')" title="Xóa bài tập này"
+                        class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" aria-label="Xóa bài tập">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               `;
@@ -1669,6 +1680,20 @@ function renderAssignmentDetailCard(assignment, activeUser, isTeacher, students)
             <i data-lucide="folder" class="w-3.5 h-3.5 text-blue-600"></i>
             <span class="hidden sm:inline">Drive</span>
           </a>
+
+          <!-- Nút Tạo lại / Đồng bộ Folder Drive -->
+          <button onclick="handleRecreateAssignmentDriveFolder('${assignment.id}')" title="Tạo lại hoặc đồng bộ lại Folder Google Drive cho bài này"
+            class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-amber-200">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-amber-600"></i>
+            <span class="hidden md:inline">Đồng bộ Folder</span>
+          </button>
+
+          <!-- Nút Xóa bài tập -->
+          <button onclick="handleDeleteAssignment('${assignment.id}')" title="Xóa bài tập này khỏi hệ thống"
+            class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-rose-200">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-600"></i>
+            <span class="hidden md:inline">Xóa</span>
+          </button>
 
           <!-- Nút bấm toggle Expand / Collapse -->
           <button onclick="toggleAssignmentCollapse('${assignment.id}')"
@@ -3063,6 +3088,70 @@ async function handleCreateAssignment(e) {
   showToast(`Đã giao bài tập mới và tự động tạo thư mục trên Google Drive!`, "success");
 }
 
+/**
+ * Xóa bài tập về nhà đã tạo
+ */
+function handleDeleteAssignment(assignmentId) {
+  const assignment = AppState.data.assignments.find(a => a.id === assignmentId);
+  if (!assignment) return;
+
+  const confirmMsg = `Bạn có chắc chắn muốn xóa bài tập "${assignment.title}" (Buổi #${assignment.lessonNumber}) không?\n\nToàn bộ dữ liệu điểm số và bài nộp của bài tập này sẽ được gỡ bỏ khỏi hệ thống.`;
+  if (!confirm(confirmMsg)) return;
+
+  AppState.data.assignments = AppState.data.assignments.filter(a => a.id !== assignmentId);
+  logActivity("grading", `Đã xóa bài tập: Buổi ${assignment.lessonNumber}`, assignment.title);
+  
+  saveAppData(AppState.data);
+  renderNavigation();
+  renderCurrentTab();
+  showToast(`Đã xóa bài tập "${assignment.title}" thành công!`, "success");
+}
+
+/**
+ * Tạo lại hoặc đồng bộ lại Folder Google Drive cho một bài tập đã tồn tại
+ */
+async function handleRecreateAssignmentDriveFolder(assignmentId) {
+  const assignment = AppState.data.assignments.find(a => a.id === assignmentId);
+  if (!assignment) return;
+
+  const lesson = AppState.data.lessons.find(l => l.id === assignment.lessonId) || {
+    number: assignment.lessonNumber,
+    title: assignment.title,
+    date: ""
+  };
+  const students = AppState.data.users.filter(u => u.role === "student");
+
+  showToast(`Đang kết nối Google Drive để tạo folder cho Buổi #${assignment.lessonNumber}...`, "info");
+  const driveResult = await DriveService.createLessonFolder(lesson, students);
+
+  if (driveResult && driveResult.success && !driveResult.simulated) {
+    const hwUrl = driveResult.homeworkFolderUrl || driveResult.folderUrl;
+    assignment.driveFolderUrl = hwUrl;
+    assignment.driveFolderId = driveResult.homeworkFolderId || driveResult.folderId;
+
+    if (lesson && lesson.id) {
+      lesson.driveFolderUrl = driveResult.folderUrl;
+      lesson.materialsFolderUrl = driveResult.materialsFolderUrl || driveResult.folderUrl;
+      lesson.homeworkFolderUrl = driveResult.homeworkFolderUrl || driveResult.folderUrl;
+      lesson.studentFolders = driveResult.studentFolders || [];
+    }
+
+    assignment.submissions.forEach(sub => {
+      const sf = (driveResult.studentFolders || []).find(s => s.studentId === sub.studentId);
+      if (sf) {
+        sub.driveFolderUrl = sf.folderUrl;
+        sub.driveFolderId = sf.folderId;
+      }
+    });
+
+    saveAppData(AppState.data);
+    renderCurrentTab();
+    showToast(`Đã tạo và cập nhật thành công Folder Drive cho Buổi #${assignment.lessonNumber}!`, "success");
+  } else {
+    showToast("Không tạo được folder trên Google Drive thật. Vui lòng kiểm tra lại Google Apps Script!", "error");
+  }
+}
+
 // Nộp bài tập
 function openSubmitHomeworkModal(assignmentId, studentId) {
   const assignment = AppState.data.assignments.find(a => a.id === assignmentId) || AppState.data.assignments[0];
@@ -3409,7 +3498,7 @@ function openScriptCodeModal() {
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
           <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
             <i data-lucide="code" class="w-5 h-5 text-blue-600"></i>
-            <span>Mã Nguồn Google Apps Script (Code.js)</span>
+            <span>Mã Nguồn Google Apps Script Mới Nhất</span>
           </h3>
           <button onclick="closeModal()" class="p-1 rounded-xl text-slate-400 hover:text-slate-700">
             <i data-lucide="x" class="w-5 h-5"></i>
@@ -3417,49 +3506,129 @@ function openScriptCodeModal() {
         </div>
 
         <p class="text-xs text-slate-600 leading-relaxed">
-          File này đã được lưu sẵn trong thư mục dự án tại <code class="bg-slate-100 px-1 py-0.5 rounded text-rose-600 font-mono">google-apps-script/Code.js</code>.
+          Copy toàn bộ mã này, mở <a href="https://script.google.com" target="_blank" class="text-blue-600 font-bold underline">script.google.com</a>, xóa sạch nội dung cũ trong file <code class="bg-slate-100 px-1 py-0.5 rounded text-rose-600 font-mono">Mã.gs</code>, dán vào và <strong>Triển khai -> Quản lý bản triển khai -> Sửa -> Phiên bản mới</strong>.
         </p>
 
         <div class="relative">
-          <pre class="bg-slate-900 text-emerald-400 p-4 rounded-2xl text-[11px] font-mono overflow-x-auto max-h-72 select-all leading-relaxed">
-// GOOGLE APPS SCRIPT CHO WEB APP QUẢN LÝ NHÓM HỌC HSK4
-var ROOT_FOLDER_NAME = "HSK4_Class_Manager_Data";
-
-function doPost(e) {
-  var requestData = JSON.parse(e.postData.contents);
-  var action = requestData.action;
-  var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), ROOT_FOLDER_NAME);
-
-  if (action === "createLessonFolder") {
-    var folderName = requestData.folderName;
-    var lessonFolder = getOrCreateFolder(rootFolder, folderName);
-    lessonFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
-
-    var studentFolders = [];
-    (requestData.students || []).forEach(function(s) {
-      var sFolder = getOrCreateFolder(lessonFolder, s.folderName);
-      studentFolders.push({ studentId: s.id, folderUrl: sFolder.getUrl() });
-    });
-
-    return ContentService.createTextOutput(JSON.stringify({
-      success: true,
-      folderUrl: lessonFolder.getUrl(),
-      studentFolders: studentFolders
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-          </pre>
+          <textarea id="script-code-copy-area" readonly class="w-full h-64 bg-slate-900 text-emerald-400 p-4 rounded-2xl text-[11px] font-mono leading-relaxed outline-none border border-slate-800 resize-none font-mono"></textarea>
         </div>
 
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-end">
-          <button onclick="closeModal()" class="px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold">
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <button onclick="copyScriptCodeToClipboard()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-100 transition">
+            <i data-lucide="copy" class="w-4 h-4"></i> Sao chép toàn bộ mã
+          </button>
+          <button onclick="closeModal()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">
             Đóng
           </button>
         </div>
       </div>
     </div>
   `;
+
+  // Điền nội dung code
+  const codeArea = document.getElementById("script-code-copy-area");
+  if (codeArea) {
+    codeArea.value = `// GOOGLE APPS SCRIPT CHO WEB APP HSK4
+var PARENT_FOLDER_ID = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
+
+function doGet(e) {
+  try {
+    var pFolder = getTargetFolder("18y3IbrKVibG9z9RzgQvVjz-jww54SelP");
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "ok",
+      message: "Kết nối thành công với Google Drive!",
+      parentFolderName: pFolder ? pFolder.getName() : "HSK4_Parent",
+      timestamp: new Date().toISOString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  try {
+    var req = {};
+    if (e && e.postData && e.postData.contents) {
+      req = JSON.parse(e.postData.contents);
+    }
+    var action = req.action || "";
+    var parentFolder = getTargetFolder(req.parentFolderId || "18y3IbrKVibG9z9RzgQvVjz-jww54SelP");
+
+    if (action === "createLessonFolder") {
+      var folderName = req.folderName || ("[HSK4] Buổi " + (req.lessonNumber || "1"));
+      var lessonFolder = getOrCreateSubFolder(parentFolder, folderName);
+      try { lessonFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT); } catch(e){}
+
+      var matFolder = getOrCreateSubFolder(lessonFolder, "01_Tai_Lieu_Buoi_Hoc");
+      try { matFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT); } catch(e){}
+
+      var hwFolder = getOrCreateSubFolder(lessonFolder, "02_Nop_Bai_Tap_Ve_Nha");
+      try { hwFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT); } catch(e){}
+
+      var students = req.students || [
+        { id: "student_1", name: "Hà Bin", folderName: "01_Ha_Bin" },
+        { id: "student_2", name: "Tien Pham", folderName: "02_Tien_Pham" },
+        { id: "student_3", name: "Xuan Mai", folderName: "03_Xuan_Mai" },
+        { id: "student_4", name: "Trang", folderName: "04_Trang" }
+      ];
+
+      var studentFolders = [];
+      for (var i = 0; i < students.length; i++) {
+        var s = students[i];
+        var sFolder = getOrCreateSubFolder(hwFolder, s.folderName || s.name);
+        try { sFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT); } catch(e){}
+        studentFolders.push({
+          studentId: s.id,
+          studentName: s.name,
+          folderName: s.folderName || s.name,
+          folderUrl: sFolder.getUrl(),
+          folderId: sFolder.getId()
+        });
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        folderName: folderName,
+        folderId: lessonFolder.getId(),
+        folderUrl: lessonFolder.getUrl(),
+        materialsFolderUrl: matFolder.getUrl(),
+        materialsFolderId: matFolder.getId(),
+        homeworkFolderUrl: hwFolder.getUrl(),
+        homeworkFolderId: hwFolder.getId(),
+        studentFolders: studentFolders
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Action không hợp lệ: " + action })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getTargetFolder(customFolderId) {
+  var id = customFolderId || "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
+  try { return DriveApp.getFolderById(id); } catch(e) { return DriveApp.getRootFolder(); }
+}
+
+function getOrCreateSubFolder(parentFolder, folderName) {
+  var folders = parentFolder.getFoldersByName(folderName);
+  if (folders.hasNext()) return folders.next();
+  return parentFolder.createFolder(folderName);
+}`;
+  }
   refreshIcons();
+}
+
+function copyScriptCodeToClipboard() {
+  const codeArea = document.getElementById("script-code-copy-area");
+  if (codeArea) {
+    codeArea.select();
+    navigator.clipboard.writeText(codeArea.value).then(() => {
+      showToast("Đã sao chép mã nguồn Google Apps Script vào bộ nhớ tạm!", "success");
+    }).catch(() => {
+      showToast("Đã chọn toàn bộ code, bấm Ctrl+C để copy!", "info");
+    });
+  }
 }
 
 function closeModal() {
