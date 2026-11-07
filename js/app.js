@@ -1395,6 +1395,7 @@ function renderHomeworkTab(container) {
           <i data-lucide="layout-grid" class="w-4 h-4 text-rose-600"></i>
           <span>Ma Trận Tiến Độ Nộp Bài Của 4 Học Viên</span>
         </h3>
+        ${assignments.length > 0 ? `
         <table class="w-full text-xs text-left">
           <thead>
             <tr class="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
@@ -1451,6 +1452,13 @@ function renderHomeworkTab(container) {
             }).join("")}
           </tbody>
         </table>
+        ` : `
+          <div class="py-8 text-center text-slate-400">
+            <i data-lucide="layout-grid" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+            <p class="font-bold text-slate-700 text-sm mb-0.5">Chưa có bài tập về nhà nào</p>
+            <p class="text-xs text-slate-400">Cô giáo có thể bấm nút "+ Giao bài tập mới" ở góc trên để giao bài đầu tiên.</p>
+          </div>
+        `}
       </div>
 
       <!-- DANH SÁCH BÀI TẬP (COLLAPSE / ACCORDION VIEW) -->
@@ -1476,7 +1484,14 @@ function renderHomeworkTab(container) {
         </div>
 
         <div class="space-y-3.5">
-          ${assignments.map(a => renderAssignmentDetailCard(a, activeUser, isTeacher, students)).join("")}
+          ${assignments.length > 0 ? 
+            assignments.map(a => renderAssignmentDetailCard(a, activeUser, isTeacher, students)).join("") : 
+            `<div class="bg-white rounded-3xl p-12 text-center text-slate-400 border border-dashed border-slate-200">
+              <i data-lucide="folder-plus" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i>
+              <p class="font-bold text-slate-700 text-sm mb-1">Chưa có bài tập nào được giao</p>
+              <p class="text-xs text-slate-400">Khi cô giáo tạo bài tập mới, hệ thống sẽ tự động tạo thư mục trên Google Drive cho từng học viên nộp bài.</p>
+            </div>`
+          }
         </div>
       </div>
     </div>
@@ -2038,7 +2053,7 @@ function renderActivityTab(container) {
       <!-- Dòng thời gian Timeline -->
       <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
         <div class="relative border-l-2 border-slate-200 pl-6 ml-4 space-y-6">
-          ${logs.map(log => {
+          ${logs.length > 0 ? logs.map(log => {
             const isReschedule = log.type === "reschedule";
             const isSub = log.type === "submission";
             const isGrade = log.type === "grading";
@@ -2067,7 +2082,13 @@ function renderActivityTab(container) {
                 </div>
               </div>
             `;
-          }).join("")}
+          }).join("") : `
+            <div class="py-10 text-center text-slate-400 -ml-6">
+              <i data-lucide="history" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i>
+              <p class="font-bold text-slate-700 text-sm mb-1">Chưa có hoạt động nào được ghi nhận</p>
+              <p class="text-xs text-slate-400">Các hoạt động như giao bài, nộp bài, chấm bài, báo bận dời lịch và hỏi đáp sẽ tự động ghi lại tại đây.</p>
+            </div>
+          `}
         </div>
       </div>
     </div>
@@ -2492,17 +2513,40 @@ function openEditLessonModal(lessonId) {
               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:ring-2 focus:ring-rose-500 outline-none">${lesson.topicNotes}</textarea>
           </div>
 
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold">Hủy</button>
-            <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-md shadow-rose-200">
-              Lưu buổi học
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <button type="button" onclick="deleteLesson('${lessonId}')" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold flex items-center gap-1.5 transition">
+              <i data-lucide="trash-2" class="w-4 h-4 text-rose-600"></i> Xóa buổi này
             </button>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold">Hủy</button>
+              <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-md shadow-rose-200">
+                Lưu buổi học
+              </button>
+            </div>
           </div>
         </form>
       </div>
     </div>
   `;
   refreshIcons();
+}
+
+function deleteLesson(lessonId) {
+  const lesson = AppState.data.lessons.find(l => l.id === lessonId);
+  if (!lesson) return;
+  if (confirm(`Bạn có chắc chắn muốn xóa Buổi #${lesson.number} ("${lesson.title}") không?`)) {
+    AppState.data.lessons = AppState.data.lessons.filter(l => l.id !== lessonId);
+    // Đánh lại số thứ tự buổi học
+    AppState.data.lessons.forEach((l, idx) => {
+      l.number = idx + 1;
+    });
+    logActivity("reschedule", `Đã xóa Buổi học #${lesson.number}`, lesson.title);
+    saveAppData(AppState.data);
+    closeModal();
+    renderNavigation();
+    renderCurrentTab();
+    showToast(`Đã xóa Buổi học thành công!`, "info");
+  }
 }
 
 function handleSaveLesson(e, lessonId) {
