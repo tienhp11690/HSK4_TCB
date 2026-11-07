@@ -48,7 +48,7 @@ const DriveService = {
    * Lưu toàn bộ dữ liệu lớp học lên Google Drive (File HSK4_Class_Data.json)
    */
   async saveCloudData(appData) {
-    if (!this.isRealCloudConnected()) return false;
+    if (!this.isRealCloudConnected()) return { success: false, error: "Chưa cấu hình URL script" };
     const url = this.getScriptUrl();
     try {
       const response = await fetch(url, {
@@ -60,10 +60,10 @@ const DriveService = {
         })
       });
       const res = await response.json();
-      return res && res.success;
+      return res || { success: false };
     } catch (e) {
       console.warn("Không lưu được dữ liệu lên Google Drive:", e);
-      return false;
+      return { success: false, error: e.message };
     }
   },
 
@@ -72,8 +72,8 @@ const DriveService = {
   saveCloudDataDebounced(appData) {
     if (this._saveTimeout) clearTimeout(this._saveTimeout);
     this._saveTimeout = setTimeout(async () => {
-      const ok = await this.saveCloudData(appData);
-      if (ok) {
+      const res = await this.saveCloudData(appData);
+      if (res && res.success) {
         const el = document.getElementById("cloud-sync-status");
         if (el) {
           const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

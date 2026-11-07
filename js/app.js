@@ -3902,11 +3902,12 @@ async function manualSyncCloudData() {
       refreshIcons();
       showToast("Đã đồng bộ dữ liệu đám mây Google Drive thành công 100%!", "success");
     } else {
-      const saved = await DriveService.saveCloudData(AppState.data);
-      if (saved) {
+      const saveRes = await DriveService.saveCloudData(AppState.data);
+      if (saveRes && saveRes.success) {
         showToast("Đã lưu và đồng bộ dữ liệu lớp học lên Google Drive!", "success");
       } else {
-        showToast("Chưa kết nối được Google Drive. Hãy kiểm tra tab Cấu hình Drive!", "warning");
+        const errMsg = saveRes && saveRes.error ? saveRes.error : "Chưa cập nhật script mới";
+        showToast(`Google Apps Script chưa nhận lệnh saveData (${errMsg}). Hãy làm theo hướng dẫn cập nhật mã nguồn!`, "warning");
       }
     }
   } catch (err) {
