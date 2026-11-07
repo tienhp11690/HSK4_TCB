@@ -1,6 +1,6 @@
 // Dữ liệu ban đầu cho hệ thống quản lý nhóm học tiếng Trung HSK4 (1 GV + 4 HV)
-// Phiên bản dữ liệu sạch (Clean Production) - Sẵn sàng cho lớp học thật
-const DATA_VERSION = "2026.11.07_v4_clean_production";
+// Phiên bản dữ liệu sạch (Clean Production) - Tự động tạo Folder Buổi học & Nộp bài tối ưu
+const DATA_VERSION = "2026.11.07_v5_real_drive_folders";
 
 const INITIAL_DATA = {
   version: DATA_VERSION,
@@ -16,12 +16,7 @@ const INITIAL_DATA = {
     defaultMeetLink: "https://meet.google.com/hsk-chrd-abc",
     googleDriveParentFolderUrl: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP?usp=drive_link",
     driveScriptUrl: "https://script.google.com/macros/s/AKfycbzkhHDAaYHNjJYWZsUltth1E4iqJHPxYE5i4tZq7MZJlK5bjz0DW-JF7TDNRba1eU0q/exec",
-    generalMaterials: [
-      { id: "mat_gen_1", name: "Giao_Trinh_Chuan_HSK_4_Tap_1.pdf", type: "pdf", size: "42.5 MB", category: "textbook", url: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP", date: "2026-11-01" },
-      { id: "mat_gen_2", name: "Giao_Trinh_Chuan_HSK_4_Tap_2.pdf", type: "pdf", size: "46.1 MB", category: "textbook", url: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP", date: "2026-11-01" },
-      { id: "mat_gen_3", name: "Bang_1200_Tu_Vung_HSK_4_Pinyin_Nghia.xlsx", type: "doc", size: "2.8 MB", category: "vocabulary", url: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP", date: "2026-11-01" },
-      { id: "mat_gen_4", name: "Bo_5_De_Thi_Thu_HSK4_Kem_File_Nghe.zip", type: "zip", size: "64.0 MB", category: "exam", url: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP", date: "2026-11-02" }
-    ]
+    generalMaterials: [] // Đã xóa sạch mockup file giả, sẵn sàng để cô giáo upload tài liệu thật
   },
 
   // Danh sách Giáo viên & 4 Học sinh (Dùng để định danh)
@@ -145,7 +140,10 @@ const INITIAL_DATA = {
       status: "upcoming",
       meetLink: "https://meet.google.com/hsk-chrd-abc",
       topicNotes: "",
-      driveFolderUrl: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP",
+      driveFolderUrl: null,
+      materialsFolderUrl: null,
+      homeworkFolderUrl: null,
+      studentFolders: [],
       reschedule: null,
       materials: []
     },
@@ -159,7 +157,10 @@ const INITIAL_DATA = {
       status: "upcoming",
       meetLink: "https://meet.google.com/hsk-chrd-abc",
       topicNotes: "",
-      driveFolderUrl: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP",
+      driveFolderUrl: null,
+      materialsFolderUrl: null,
+      homeworkFolderUrl: null,
+      studentFolders: [],
       reschedule: null,
       materials: []
     }

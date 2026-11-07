@@ -58,6 +58,8 @@ const DriveService = {
             success: true,
             folderUrl: result.folderUrl,
             folderId: result.folderId,
+            materialsFolderUrl: result.materialsFolderUrl || result.folderUrl,
+            homeworkFolderUrl: result.homeworkFolderUrl || result.folderUrl,
             studentFolders: result.studentFolders || []
           };
         } else {
@@ -85,6 +87,8 @@ const DriveService = {
       simulated: true,
       folderUrl: mockFolderUrl,
       folderId: mockFolderId,
+      materialsFolderUrl: `${mockFolderUrl}/materials`,
+      homeworkFolderUrl: `${mockFolderUrl}/homework`,
       studentFolders: studentFolders
     };
   },

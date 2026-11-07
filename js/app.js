@@ -692,15 +692,35 @@ function renderLessonCard(lesson, activeUser) {
         </div>
       </div>
 
-      <!-- Footer chỉ dẫn tiện lợi: Xem tài liệu buổi này -->
+      <!-- Footer liên kết Google Drive & Tài liệu của buổi học -->
       <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div class="text-[11px] text-slate-400 font-mono truncate max-w-sm">
-          Link phòng: <a href="${lesson.meetLink}" target="_blank" class="text-blue-600 hover:underline">${lesson.meetLink}</a>
+        <div class="flex flex-wrap items-center gap-2">
+          ${lesson.driveFolderUrl ? `
+            <a href="${lesson.driveFolderUrl}" target="_blank" 
+              class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold border border-blue-200 flex items-center gap-1.5 transition">
+              <i data-lucide="folder" class="w-3.5 h-3.5 text-blue-600"></i>
+              <span>Folder Buổi Học</span>
+              <i data-lucide="external-link" class="w-3 h-3 text-blue-400"></i>
+            </a>
+            <a href="${lesson.materialsFolderUrl || lesson.driveFolderUrl}" target="_blank" 
+              class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold border border-indigo-200 flex items-center gap-1.5 transition">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-indigo-600"></i>
+              <span>Tài Liệu Buổi Học</span>
+              <i data-lucide="external-link" class="w-3 h-3 text-indigo-400"></i>
+            </a>
+          ` : `
+            <button onclick="createDriveFolderForLesson('${lesson.id}')" id="btn-create-drive-${lesson.id}"
+              class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold border border-rose-200 flex items-center gap-1.5 transition">
+              <i data-lucide="cloud-plus" class="w-3.5 h-3.5 text-rose-600"></i>
+              <span>⚡ Tạo Folder Drive cho buổi này</span>
+            </button>
+          `}
         </div>
+
         <button onclick="goToMaterials('${lesson.id}')" 
           class="text-xs font-bold text-slate-600 hover:text-indigo-600 flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-slate-50 transition">
           <i data-lucide="folder-archive" class="w-3.5 h-3.5 text-amber-500"></i>
-          <span>Tra cứu tài liệu & Drive buổi #${lesson.number} →</span>
+          <span>Tra cứu tài liệu Buổi #${lesson.number} →</span>
         </button>
       </div>
 
@@ -954,23 +974,40 @@ function renderMaterialsTab(container) {
       </div>
 
       <!-- PHẦN 1: TÀI LIỆU CHUNG TOÀN KHÓA HỌC (GIÁO TRÌNH & TỪ VỰNG) -->
-      ${filteredGeneral.length > 0 ? `
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <i data-lucide="book-marked" class="w-4 h-4 text-rose-600"></i>
-              <span>Giáo Trình Chuẩn & Tài Liệu Dùng Chung Cả Khóa</span>
-            </h3>
-            <span class="text-xs text-slate-400">${filteredGeneral.length} tài liệu</span>
+      <div class="space-y-3">
+        <div class="bg-gradient-to-r from-slate-50 to-indigo-50/60 p-5 rounded-3xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <i data-lucide="folder" class="w-5 h-5 text-blue-600"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <span>Thư Mục Tài Liệu Gốc Toàn Khóa (Google Drive)</span>
+                <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">Google Drive</span>
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Nơi lưu trữ giáo trình chuẩn HSK 4, đề cương, sách bài tập và từ vựng dùng cho toàn bộ khóa học.
+              </p>
+            </div>
           </div>
 
+          <div class="flex items-center gap-2 self-end sm:self-center">
+            <a href="${parentFolderUrl}" target="_blank" 
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm shadow-blue-200">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              <span>Mở Google Drive</span>
+            </a>
+          </div>
+        </div>
+
+        ${filteredGeneral.length > 0 ? `
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             ${filteredGeneral.map(m => renderGeneralMaterialCard(m)).join("")}
           </div>
-        </div>
-      ` : ''}
+        ` : ''}
+      </div>
 
-      <!-- PHẦN 2: TÀI LIỆU THEO TỪNG BUỔI HỌC (BUỔI 1 -> BUỔI 7) -->
+      <!-- PHẦN 2: TÀI LIỆU THEO TỪNG BUỔI HỌC (KÈM LINK FOLDER TÀI LIỆU RIÊNG) -->
       <div class="space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
@@ -1074,20 +1111,34 @@ function renderLessonMaterialsCard(lesson, isTeacher) {
           </div>
         </div>
 
-        <div class="flex items-center gap-2 self-end md:self-center">
-          ${lesson.driveFolderUrl ? `
-            <a href="${lesson.driveFolderUrl}" target="_blank" 
-              class="px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-blue-200 shadow-sm">
-              <i data-lucide="folder" class="w-4 h-4 text-blue-600"></i>
-              <span>Thư mục Drive Buổi ${lesson.number}</span>
-              <i data-lucide="external-link" class="w-3 h-3 text-blue-400"></i>
+        <div class="flex flex-wrap items-center gap-2 self-end md:self-center">
+          ${(lesson.materialsFolderUrl || lesson.driveFolderUrl) ? `
+            <a href="${lesson.materialsFolderUrl || lesson.driveFolderUrl}" target="_blank" 
+              class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-indigo-200 shadow-sm">
+              <i data-lucide="folder-check" class="w-4 h-4 text-indigo-600"></i>
+              <span>Folder Tài Liệu Buổi ${lesson.number}</span>
+              <i data-lucide="external-link" class="w-3 h-3 text-indigo-400"></i>
+            </a>
+          ` : `
+            <button onclick="createDriveFolderForLesson('${lesson.id}')" id="btn-create-drive-${lesson.id}"
+              class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm shadow-blue-200">
+              <i data-lucide="cloud-plus" class="w-3.5 h-3.5"></i>
+              <span>⚡ Tạo Folder Drive Buổi ${lesson.number}</span>
+            </button>
+          `}
+
+          ${lesson.homeworkFolderUrl ? `
+            <a href="${lesson.homeworkFolderUrl}" target="_blank" 
+              class="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-blue-200">
+              <i data-lucide="folder-up" class="w-3.5 h-3.5 text-blue-600"></i>
+              <span>Folder Nộp Bài</span>
             </a>
           ` : ''}
 
           ${isTeacher ? `
             <button onclick="openAddLessonMaterialModal('${lesson.id}')" 
               class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1">
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Thêm file
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Ghim link file
             </button>
           ` : ''}
         </div>
@@ -1095,7 +1146,7 @@ function renderLessonMaterialsCard(lesson, isTeacher) {
 
       <div>
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-          <i data-lucide="files" class="w-3.5 h-3.5 text-slate-400"></i> Tài liệu đã lưu trên Drive (${materials.length} file):
+          <i data-lucide="files" class="w-3.5 h-3.5 text-slate-400"></i> File bài giảng ghim riêng (${materials.length} file):
         </div>
 
         ${materials.length > 0 ? `
@@ -1103,8 +1154,13 @@ function renderLessonMaterialsCard(lesson, isTeacher) {
             ${materials.map(m => renderMaterialItemRow(m)).join("")}
           </div>
         ` : `
-          <div class="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
-            Chưa có tài liệu đính kèm riêng cho buổi này. Cô giáo có thể bấm "+ Thêm file" để bổ sung.
+          <div class="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>Chưa có file ghim riêng cho buổi này. Bạn có thể mở Folder Drive ở trên để tải slide, audio vào đó.</span>
+            ${(lesson.materialsFolderUrl || lesson.driveFolderUrl) ? `
+              <a href="${lesson.materialsFolderUrl || lesson.driveFolderUrl}" target="_blank" class="text-indigo-600 font-bold hover:underline flex items-center gap-1 flex-shrink-0">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Mở folder tài liệu Drive
+              </a>
+            ` : ''}
           </div>
         `}
       </div>
@@ -1768,7 +1824,16 @@ function renderStudentSubmissionBox(assignmentId, lessonNumber, student, submiss
         </div>
       ` : ''}
 
-      <div class="pt-1 flex items-center justify-end gap-2">
+      <div class="pt-1 flex flex-wrap items-center justify-end gap-2">
+        ${submission.driveFolderUrl ? `
+          <a href="${submission.driveFolderUrl}" target="_blank" 
+            class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center gap-1 transition">
+            <i data-lucide="folder" class="w-3 h-3 text-blue-600"></i>
+            <span>Folder ${isMe ? 'của bạn' : student.name}</span>
+            <i data-lucide="external-link" class="w-2.5 h-2.5 text-blue-400"></i>
+          </a>
+        ` : ''}
+
         ${(isMe || isTeacher) ? `
           <button onclick="openSubmitHomeworkModal('${assignmentId}', '${student.id}')" 
             class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition ${
@@ -2633,8 +2698,14 @@ function openAddNewLessonModal() {
   refreshIcons();
 }
 
-function handleAddNewLesson(e, number) {
+async function handleAddNewLesson(e, number) {
   e.preventDefault();
+  const submitBtn = e.target.querySelector("button[type='submit']");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Đang tạo folder trên Drive...`;
+  }
+
   const activeUser = getActiveUser();
   const title = document.getElementById("add-lesson-title").value.trim();
   const date = document.getElementById("add-lesson-date").value;
@@ -2644,6 +2715,28 @@ function handleAddNewLesson(e, number) {
 
   const d = new Date(date + "T00:00:00");
   const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+
+  const students = AppState.data.users.filter(u => u.role === "student");
+  let folderInfo = {
+    folderUrl: null,
+    materialsFolderUrl: null,
+    homeworkFolderUrl: null,
+    studentFolders: []
+  };
+
+  showToast(`Đang kết nối Google Drive để tự động tạo cấu trúc Folder Buổi ${number}...`, "info");
+  try {
+    const driveRes = await DriveService.createLessonFolder({ number, title, date }, students);
+    if (driveRes && driveRes.success) {
+      folderInfo.folderUrl = driveRes.folderUrl;
+      folderInfo.materialsFolderUrl = driveRes.materialsFolderUrl || driveRes.folderUrl;
+      folderInfo.homeworkFolderUrl = driveRes.homeworkFolderUrl || driveRes.folderUrl;
+      folderInfo.studentFolders = driveRes.studentFolders || [];
+      showToast(`Đã tự động tạo xong Folder Buổi ${number} và các thư mục nộp bài trên Google Drive!`, "success");
+    }
+  } catch (err) {
+    console.warn("Lỗi khi tạo folder Drive:", err);
+  }
 
   const newLesson = {
     id: "lesson_" + Date.now(),
@@ -2655,20 +2748,57 @@ function handleAddNewLesson(e, number) {
     status: "upcoming",
     meetLink: meet,
     topicNotes: notes,
-    driveFolderUrl: `https://drive.google.com/drive/folders/1Buoi${number}_HSK4_AutoCreated`,
-    reschedule: null
+    driveFolderUrl: folderInfo.folderUrl,
+    materialsFolderUrl: folderInfo.materialsFolderUrl,
+    homeworkFolderUrl: folderInfo.homeworkFolderUrl,
+    studentFolders: folderInfo.studentFolders,
+    reschedule: null,
+    materials: []
   };
 
   AppState.data.lessons.push(newLesson);
-
-  // Ghi nhật ký
-  logActivity("reschedule", `${activeUser.name} đã thêm Buổi học #${number}`, `${title} (${date})`);
-
+  logActivity("reschedule", `${activeUser.name} đã thêm Buổi học #${number}`, `${title} (${date}) - Đã tạo & gắn link Drive`);
   saveAppData(AppState.data);
   closeModal();
   renderNavigation();
   renderCurrentTab();
   showToast(`Đã thêm thành công Buổi số ${number}!`, "success");
+}
+
+async function createDriveFolderForLesson(lessonId) {
+  const lesson = AppState.data.lessons.find(l => l.id === lessonId);
+  if (!lesson) return;
+
+  const btn = document.getElementById(`btn-create-drive-${lesson.id}`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Đang tạo folder...`;
+  }
+
+  showToast(`Đang gọi Google Drive để tạo thư mục cho Buổi #${lesson.number}...`, "info");
+  const students = AppState.data.users.filter(u => u.role === "student");
+  try {
+    const driveRes = await DriveService.createLessonFolder(lesson, students);
+    if (driveRes && driveRes.success) {
+      lesson.driveFolderUrl = driveRes.folderUrl;
+      lesson.materialsFolderUrl = driveRes.materialsFolderUrl || driveRes.folderUrl;
+      lesson.homeworkFolderUrl = driveRes.homeworkFolderUrl || driveRes.folderUrl;
+      lesson.studentFolders = driveRes.studentFolders || [];
+      saveAppData(AppState.data);
+      renderCurrentTab();
+      showToast(`Đã tạo xong thư mục Google Drive cho Buổi #${lesson.number}!`, "success");
+      return;
+    }
+  } catch (err) {
+    console.error("Lỗi:", err);
+  }
+
+  showToast("Chưa thể tạo folder. Vui lòng kiểm tra lại Web App URL trong tab Cấu hình Drive!", "error");
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = `<i data-lucide="cloud-plus" class="w-3.5 h-3.5 text-rose-600"></i> Thử tạo lại`;
+    refreshIcons();
+  }
 }
 
 // Báo bận: Tự động gắn tên người báo bận
@@ -2870,11 +3000,28 @@ async function handleCreateAssignment(e) {
   const lesson = AppState.data.lessons.find(l => l.id === lessonId);
   const students = AppState.data.users.filter(u => u.role === "student");
 
-  const driveResult = await DriveService.createLessonFolder({
-    number: lesson ? lesson.number : 1,
-    title: title,
-    date: lesson ? lesson.date : ""
-  }, students);
+  let homeworkFolderUrl = lesson ? lesson.homeworkFolderUrl : null;
+  let studentFolders = lesson && lesson.studentFolders ? lesson.studentFolders : [];
+
+  // Nếu buổi học này chưa có folder Drive, tự động tạo ngay
+  if (!homeworkFolderUrl || studentFolders.length === 0) {
+    const driveResult = await DriveService.createLessonFolder({
+      number: lesson ? lesson.number : 1,
+      title: lesson ? lesson.title : title,
+      date: lesson ? lesson.date : ""
+    }, students);
+
+    if (driveResult && driveResult.success) {
+      if (lesson) {
+        lesson.driveFolderUrl = driveResult.folderUrl;
+        lesson.materialsFolderUrl = driveResult.materialsFolderUrl || driveResult.folderUrl;
+        lesson.homeworkFolderUrl = driveResult.homeworkFolderUrl || driveResult.folderUrl;
+        lesson.studentFolders = driveResult.studentFolders || [];
+      }
+      homeworkFolderUrl = driveResult.homeworkFolderUrl || driveResult.folderUrl;
+      studentFolders = driveResult.studentFolders || [];
+    }
+  }
 
   const newAssignment = {
     id: "assign_" + Date.now(),
@@ -2885,18 +3032,23 @@ async function handleCreateAssignment(e) {
     deadline: deadline,
     instructions: instructions,
     referenceFiles: [],
-    driveFolderUrl: driveResult.folderUrl,
-    submissions: students.map(s => ({
-      studentId: s.id,
-      status: "not_submitted",
-      submittedAt: null,
-      files: [],
-      studentNotes: null,
-      grade: null,
-      teacherFeedback: null,
-      teacherCorrectionFile: null,
-      gradedAt: null
-    }))
+    driveFolderUrl: homeworkFolderUrl || AppState.data.classInfo.googleDriveParentFolderUrl,
+    submissions: students.map(s => {
+      const sf = studentFolders.find(item => item.studentId === s.id);
+      return {
+        studentId: s.id,
+        driveFolderUrl: sf ? sf.folderUrl : (homeworkFolderUrl || AppState.data.classInfo.googleDriveParentFolderUrl),
+        driveFolderId: sf ? sf.folderId : null,
+        status: "not_submitted",
+        submittedAt: null,
+        files: [],
+        studentNotes: null,
+        grade: null,
+        teacherFeedback: null,
+        teacherCorrectionFile: null,
+        gradedAt: null
+      };
+    })
   };
 
   AppState.data.assignments.unshift(newAssignment);

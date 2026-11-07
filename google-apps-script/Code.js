@@ -11,7 +11,6 @@ var PARENT_FOLDER_ID = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
 
 /**
  * Endpoint kiểm tra kết nối (GET Request)
- * Đã bọc try-catch tuyệt đối để không bao giờ bị lỗi CORS
  */
 function doGet(e) {
   try {
@@ -70,27 +69,41 @@ function doPost(e) {
     // Lấy thư mục cha đã được cấu hình trên Google Drive
     var parentFolder = getTargetFolder(customParentId);
 
-    // -------------------------------------------------------------
-    // 1. TỰ ĐỘNG TẠO THƯ MỤC BUỔI HỌC VÀ 4 SUBFOLDER CHO 4 HỌC VIÊN
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // 1. CẤU TRÚC TỐI ƯU: TẠO THƯ MỤC BUỔI HỌC KÈM 2 THƯ MỤC CON CHUYÊN BIỆT:
+    //    📁 [HSK4] Buổi XX - [Tên Bài]
+    //         ├── 📁 01_Tai_Lieu_Buoi_Hoc (Slide, Audio, Ghi hình Meet)
+    //         └── 📁 02_Nop_Bai_Tap_Ve_Nha (Folder nộp bài tập của buổi này)
+    //              ├── 📁 01_Ha_Bin
+    //              ├── 📁 02_Tien_Pham
+    //              ├── 📁 03_Xuan_Mai
+    //              └── 📁 04_Trang
+    // -------------------------------------------------------------------------
     if (action === "createLessonFolder") {
-      var lessonNum = requestData.lessonNumber || "X";
-      var folderName = requestData.folderName || ("[HSK4] Buổi " + lessonNum);
+      var lessonNum = requestData.lessonNumber || "1";
+      var formattedNum = String(lessonNum).padStart(2, "0");
+      var lessonTitle = requestData.lessonTitle || ("Buổi " + lessonNum);
+      var folderName = requestData.folderName || ("[HSK4] Buổi " + formattedNum + " - " + lessonTitle);
       
-      // Tạo thư mục buổi học trong Thư mục cha Drive
+      // 1. Tạo thư mục buổi học chính trong Thư mục cha Drive
       var lessonFolder = getOrCreateSubFolder(parentFolder, folderName);
-      
       try {
         lessonFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
       } catch (errShare) {}
 
-      // Tạo thư mục tài liệu buổi học
-      var materialsFolder = getOrCreateSubFolder(lessonFolder, "00_Tai_Lieu_Buoi_Hoc");
+      // 2. Tạo Thư mục Tài liệu buổi học (01_Tai_Lieu_Buoi_Hoc)
+      var materialsFolder = getOrCreateSubFolder(lessonFolder, "01_Tai_Lieu_Buoi_Hoc");
       try {
         materialsFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
       } catch (e) {}
 
-      // Tạo các thư mục con cho từng học viên nộp bài
+      // 3. Tạo Thư mục Nộp bài tập về nhà (02_Nop_Bai_Tap_Ve_Nha)
+      var homeworkFolder = getOrCreateSubFolder(lessonFolder, "02_Nop_Bai_Tap_Ve_Nha");
+      try {
+        homeworkFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
+      } catch (e) {}
+
+      // 4. Tạo các thư mục con cho 4 học viên bên trong thư mục Nộp bài tập
       var studentFolders = [];
       var students = requestData.students || [
         { id: "student_1", name: "Hà Bin", folderName: "01_Ha_Bin" },
@@ -101,7 +114,7 @@ function doPost(e) {
 
       for (var i = 0; i < students.length; i++) {
         var s = students[i];
-        var sFolder = getOrCreateSubFolder(lessonFolder, s.folderName || s.name);
+        var sFolder = getOrCreateSubFolder(homeworkFolder, s.folderName || s.name);
         try {
           sFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
         } catch (e) {}
@@ -121,6 +134,9 @@ function doPost(e) {
         folderId: lessonFolder.getId(),
         folderUrl: lessonFolder.getUrl(),
         materialsFolderUrl: materialsFolder.getUrl(),
+        materialsFolderId: materialsFolder.getId(),
+        homeworkFolderUrl: homeworkFolder.getUrl(),
+        homeworkFolderId: homeworkFolder.getId(),
         studentFolders: studentFolders
       });
     }
@@ -136,12 +152,22 @@ function doPost(e) {
       var mimeType = requestData.mimeType || "application/octet-stream";
       var fileContent = requestData.fileContent; // Base64
       var notes = requestData.notes || "";
+      var targetFolderId = requestData.targetFolderId;
 
       // Giải mã dữ liệu file Base64
       var decodedBlob = Utilities.newBlob(Utilities.base64Decode(fileContent), mimeType, fileName);
 
-      // Lưu file vào thư mục Drive
-      var createdFile = parentFolder.createFile(decodedBlob);
+      // Thư mục đích: nếu có targetFolderId thì lưu thẳng vào folder của học viên đó
+      var targetFolder = parentFolder;
+      if (targetFolderId) {
+        try {
+          targetFolder = DriveApp.getFolderById(targetFolderId);
+        } catch (errTgt) {
+          targetFolder = parentFolder;
+        }
+      }
+
+      var createdFile = targetFolder.createFile(decodedBlob);
       try {
         createdFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       } catch (e) {}
@@ -164,7 +190,14 @@ function doPost(e) {
     // -------------------------------------------------------------
     if (action === "syncFolder") {
       var filesList = [];
-      var files = parentFolder.getFiles();
+      var targetF = parentFolder;
+      if (requestData.folderId) {
+        try {
+          targetF = DriveApp.getFolderById(requestData.folderId);
+        } catch (e) {}
+      }
+
+      var files = targetF.getFiles();
       while (files.hasNext()) {
         var file = files.next();
         filesList.push({
