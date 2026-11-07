@@ -14,7 +14,7 @@ const INITIAL_DATA = {
     schedulePattern: "Thứ Hai & Thứ Tư hàng tuần (17:00 - 18:30)",
     defaultMeetLink: "https://meet.google.com/hsk-chrd-abc",
     googleDriveParentFolderUrl: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP?usp=drive_link",
-    driveScriptUrl: "", // Dán Web App URL của Google Apps Script vào đây (ví dụ: https://script.google.com/macros/s/.../exec)
+    driveScriptUrl: "https://script.google.com/macros/s/AKfycbzkhHDAaYHNjJYWZsUltth1E4iqJHPxYE5i4tZq7MZJlK5bjz0DW-JF7TDNRba1eU0q/exec",
     generalMaterials: [
       { id: "mat_gen_1", name: "Giao_Trinh_Chuan_HSK_4_Tap_1.pdf", type: "pdf", size: "42.5 MB", category: "textbook", url: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP", date: "2026-11-01" },
       { id: "mat_gen_2", name: "Giao_Trinh_Chuan_HSK_4_Tap_2.pdf", type: "pdf", size: "46.1 MB", category: "textbook", url: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP", date: "2026-11-01" },

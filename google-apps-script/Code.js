@@ -2,32 +2,49 @@
  * GOOGLE APPS SCRIPT CHO WEB APP QUẢN LÝ NHÓM HỌC TIẾNG TRUNG HSK 4
  * Lớp học: Lớp Tiếng Trung HSK 4 - Techcombank (1 GV: Sha Sha + 4 HV: Hà Bin, Tien Pham, Xuan Mai, Trang)
  * =====================================================================================================
- * Thư mục gốc trên Google Drive đã được gắn cố định:
- * Link Drive cha: https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP
+ * Thư mục gốc Google Drive: https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP
  * Folder ID: 18y3IbrKVibG9z9RzgQvVjz-jww54SelP
  */
 
-// ID Thư mục cha trên Google Drive của bạn
+// 1. Cấu hình ID thư mục cha cố định
 var PARENT_FOLDER_ID = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
 
 /**
  * Endpoint kiểm tra kết nối (GET Request)
- * Được gọi khi bấm nút "Kiểm tra kết nối ngay" trên Web App
+ * Đã bọc try-catch tuyệt đối để không bao giờ bị lỗi CORS
  */
 function doGet(e) {
-  var parentName = "HSK4_Parent_Folder";
   try {
-    var pFolder = getTargetFolder();
-    parentName = pFolder.getName();
-  } catch (err) {}
+    var folderId = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
+    if (typeof PARENT_FOLDER_ID !== "undefined" && PARENT_FOLDER_ID) {
+      folderId = PARENT_FOLDER_ID;
+    }
 
-  return ContentService.createTextOutput(JSON.stringify({
-    status: "ok",
-    message: "Google Apps Script Web App đang kết nối thành công với Google Drive!",
-    parentFolderId: PARENT_FOLDER_ID,
-    parentFolderName: parentName,
-    timestamp: new Date().toISOString()
-  })).setMimeType(ContentService.MimeType.JSON);
+    var parentName = "HSK4_Parent_Folder";
+    try {
+      var pFolder = getTargetFolder(folderId);
+      if (pFolder) {
+        parentName = pFolder.getName();
+      }
+    } catch (errFolder) {
+      Logger.log("Lỗi đọc tên folder: " + errFolder.toString());
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "ok",
+      message: "Google Apps Script Web App đang kết nối thành công với Google Drive!",
+      parentFolderId: folderId,
+      parentFolderName: parentName,
+      timestamp: new Date().toISOString()
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      error: err.toString(),
+      timestamp: new Date().toISOString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 /**
@@ -35,11 +52,23 @@ function doGet(e) {
  */
 function doPost(e) {
   try {
-    var requestData = JSON.parse(e.postData.contents);
-    var action = requestData.action;
+    var requestData = {};
+    if (e && e.postData && e.postData.contents) {
+      try {
+        requestData = JSON.parse(e.postData.contents);
+      } catch (errJson) {
+        requestData = {};
+      }
+    }
+
+    var action = requestData.action || "";
+    var customParentId = requestData.parentFolderId || "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
+    if (typeof PARENT_FOLDER_ID !== "undefined" && PARENT_FOLDER_ID) {
+      customParentId = PARENT_FOLDER_ID;
+    }
 
     // Lấy thư mục cha đã được cấu hình trên Google Drive
-    var parentFolder = getTargetFolder(requestData.parentFolderId);
+    var parentFolder = getTargetFolder(customParentId);
 
     // -------------------------------------------------------------
     // 1. TỰ ĐỘNG TẠO THƯ MỤC BUỔI HỌC VÀ 4 SUBFOLDER CHO 4 HỌC VIÊN
@@ -51,12 +80,9 @@ function doPost(e) {
       // Tạo thư mục buổi học trong Thư mục cha Drive
       var lessonFolder = getOrCreateSubFolder(parentFolder, folderName);
       
-      // Cấu hình chia sẻ: Bất kỳ ai có link đều có thể xem & tải file lên
       try {
         lessonFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
-      } catch (errShare) {
-        Logger.log("Lưu ý về quyền chia sẻ: " + errShare.toString());
-      }
+      } catch (errShare) {}
 
       // Tạo thư mục tài liệu buổi học
       var materialsFolder = getOrCreateSubFolder(lessonFolder, "00_Tai_Lieu_Buoi_Hoc");
@@ -114,11 +140,8 @@ function doPost(e) {
       // Giải mã dữ liệu file Base64
       var decodedBlob = Utilities.newBlob(Utilities.base64Decode(fileContent), mimeType, fileName);
 
-      // Tìm kiếm thư mục lưu trữ phù hợp trong Drive
-      var targetFolder = parentFolder;
-      
-      // Tạo file vào thư mục Drive
-      var createdFile = targetFolder.createFile(decodedBlob);
+      // Lưu file vào thư mục Drive
+      var createdFile = parentFolder.createFile(decodedBlob);
       try {
         createdFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       } catch (e) {}
@@ -170,12 +193,12 @@ function doPost(e) {
  * Hàm lấy thư mục cha Google Drive theo ID
  */
 function getTargetFolder(customFolderId) {
-  var targetId = customFolderId || PARENT_FOLDER_ID;
+  var targetId = customFolderId || "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
   if (targetId && targetId.trim() !== "") {
     try {
       return DriveApp.getFolderById(targetId.trim());
     } catch (e) {
-      Logger.log("Không tìm thấy folder với ID " + targetId + ", tạo thư mục mặc định: " + e.toString());
+      Logger.log("Không tìm thấy folder với ID " + targetId + ": " + e.toString());
     }
   }
   return getOrCreateSubFolder(DriveApp.getRootFolder(), "HSK4_Class_Manager_Data");
