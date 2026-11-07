@@ -1,6 +1,6 @@
 // Dữ liệu ban đầu cho hệ thống quản lý nhóm học tiếng Trung HSK4 (1 GV + 4 HV)
 // Phiên bản dữ liệu sạch (Clean Production) - Tự động tạo Folder Buổi học & Nộp bài tối ưu
-const DATA_VERSION = "2026.11.07_v5_real_drive_folders";
+const DATA_VERSION = "2026.11.07_v6_real_gas_connected";
 
 const INITIAL_DATA = {
   version: DATA_VERSION,
@@ -15,7 +15,7 @@ const INITIAL_DATA = {
     schedulePattern: "Thứ Hai & Thứ Tư hàng tuần (17:00 - 18:30)",
     defaultMeetLink: "https://meet.google.com/hsk-chrd-abc",
     googleDriveParentFolderUrl: "https://drive.google.com/drive/folders/18y3IbrKVibG9z9RzgQvVjz-jww54SelP?usp=drive_link",
-    driveScriptUrl: "https://script.google.com/macros/s/AKfycbzkhHDAaYHNjJYWZsUltth1E4iqJHPxYE5i4tZq7MZJlK5bjz0DW-JF7TDNRba1eU0q/exec",
+    driveScriptUrl: "https://script.google.com/macros/s/AKfycbwlIswjWhLy3R4qlwEXxEbAJND7x5CnN7s07-Sy7HfKPnhwMm6PrVuD_dxban2QqlSJ/exec",
     generalMaterials: [] // Đã xóa sạch mockup file giả, sẵn sàng để cô giáo upload tài liệu thật
   },
 
@@ -181,12 +181,24 @@ function getAppData() {
   const saved = localStorage.getItem("HSK4_CLASS_APP_DATA");
   const savedVersion = localStorage.getItem("HSK4_DATA_VERSION");
 
-  if (saved && savedVersion === DATA_VERSION) {
+  if (saved) {
     try {
       const data = JSON.parse(saved);
       if (!data.discussions) data.discussions = INITIAL_DATA.discussions;
       if (!data.activityLogs) data.activityLogs = INITIAL_DATA.activityLogs;
       if (!data.classInfo.generalMaterials) data.classInfo.generalMaterials = INITIAL_DATA.classInfo.generalMaterials;
+
+      // Tự động nâng cấp sang URL Google Apps Script mới hoạt động 100%
+      if (!data.classInfo.driveScriptUrl || data.classInfo.driveScriptUrl.includes("AKfycbzkhHDAaYHNjJYWZsUltth1E4iqJHPxYE5i4tZq7MZJlK5bjz0DW-JF7TDNRba1eU0q")) {
+        data.classInfo.driveScriptUrl = INITIAL_DATA.classInfo.driveScriptUrl;
+        saveAppData(data);
+      }
+
+      if (savedVersion !== DATA_VERSION) {
+        data.version = DATA_VERSION;
+        saveAppData(data);
+      }
+
       return data;
     } catch (e) {
       console.error("Lỗi parse data:", e);
