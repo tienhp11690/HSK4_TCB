@@ -1,6 +1,6 @@
 // Dữ liệu ban đầu cho hệ thống quản lý nhóm học tiếng Trung HSK4 (1 GV + 4 HV)
 // Phiên bản dữ liệu sạch (Clean Production) - Tự động tạo Folder Buổi học & Nộp bài tối ưu
-const DATA_VERSION = "2026.11.07_v6_real_gas_connected";
+const DATA_VERSION = "2026.11.07_v7_buoi1_homework_live";
 
 const INITIAL_DATA = {
   version: DATA_VERSION,
@@ -128,7 +128,6 @@ const INITIAL_DATA = {
   ],
 
   // Lịch học các buổi: Khung giờ cố định Thứ Hai & Thứ Tư (17:00 - 18:30)
-  // Đã xóa sạch các ghi chú giả, file giả, báo bận giả; toàn bộ ở trạng thái sắp diễn ra
   lessons: [
     {
       id: "lesson_1",
@@ -139,24 +138,29 @@ const INITIAL_DATA = {
       time: "17:00 - 18:30",
       status: "upcoming",
       meetLink: "https://meet.google.com/hsk-chrd-abc",
-      topicNotes: "",
-      driveFolderUrl: null,
-      materialsFolderUrl: null,
-      homeworkFolderUrl: null,
-      studentFolders: [],
+      topicNotes: "Luyện ngữ âm, giới thiệu cấu trúc đề thi HSK 4 & phương pháp phản xạ thực chiến.",
+      driveFolderUrl: "https://drive.google.com/drive/folders/1blS8_-v8TX8lY7LTF_mOiXDZm9lkdrRQ",
+      materialsFolderUrl: "https://drive.google.com/drive/folders/12-w_W4A8qh0ALt83UFyTQaEAdGOBh06i",
+      homeworkFolderUrl: "https://drive.google.com/drive/folders/1bRwEUA1hSinE1T5yKc7OVFHly-Nj13P1",
+      studentFolders: [
+        { studentId: "student_1", studentName: "Hà Bin", folderName: "01_Ha_Bin", folderUrl: "https://drive.google.com/drive/folders/1EO3Yjx1InqB3YHDOcEZlbrCIkxQ4VUmH", folderId: "1EO3Yjx1InqB3YHDOcEZlbrCIkxQ4VUmH" },
+        { studentId: "student_2", studentName: "Tien Pham", folderName: "02_Tien_Pham", folderUrl: "https://drive.google.com/drive/folders/17prkypM3CwN12kMuXnE5EPmksjvKsdlA", folderId: "17prkypM3CwN12kMuXnE5EPmksjvKsdlA" },
+        { studentId: "student_3", studentName: "Xuan Mai", folderName: "03_Xuan_Mai", folderUrl: "https://drive.google.com/drive/folders/1WTHIrcXGC2s8l5IK7A8BVMF5v3GejVGE", folderId: "1WTHIrcXGC2s8l5IK7A8BVMF5v3GejVGE" },
+        { studentId: "student_4", studentName: "Trang", folderName: "04_Trang", folderUrl: "https://drive.google.com/drive/folders/15pVTVQJIwRrEwoxOvBSgD92KxpjW98Wr", folderId: "15pVTVQJIwRrEwoxOvBSgD92KxpjW98Wr" }
+      ],
       reschedule: null,
       materials: []
     },
     {
       id: "lesson_2",
       number: 2,
-      title: "Bài 2: Buổi học số 2",
+      title: "Bài 2: Tình bạn & Mối quan hệ xã hội",
       date: "2026-11-11",
       dayOfWeek: "Thứ Tư",
       time: "17:00 - 18:30",
       status: "upcoming",
       meetLink: "https://meet.google.com/hsk-chrd-abc",
-      topicNotes: "",
+      topicNotes: "Phân biệt 陪 (péi) và 并且 (bìngqiě). Kỹ năng tóm tắt đoạn văn kể chuyện.",
       driveFolderUrl: null,
       materialsFolderUrl: null,
       homeworkFolderUrl: null,
@@ -166,8 +170,75 @@ const INITIAL_DATA = {
     }
   ],
 
-  // Danh sách bài tập về nhà: Làm sạch hoàn toàn, sẵn sàng để cô giáo bấm "+ Giao bài tập mới"
-  assignments: [],
+  // Danh sách bài tập về nhà: Tạo sẵn bài tập Buổi 1 kết nối với Folder Drive thật
+  assignments: [
+    {
+      id: "assign_buoi_1",
+      lessonId: "lesson_1",
+      lessonNumber: 1,
+      title: "BTVN Buổi 1: Luyện phát âm, ngữ pháp & Ghi âm bài khóa",
+      chineseTitle: "第一课课后作业",
+      assignedDate: "2026-11-09",
+      deadline: "2026-11-11 17:00",
+      instructions: "1. Đọc và thu âm file audio đọc bài khóa Bài 1 (chuẩn ngữ điệu & thanh điệu).\n2. Hoàn thành bài tập ngữ pháp trong sách bài tập HSK 4.\n3. Nộp file ghi âm và ảnh chụp vở bài tập vào đúng thư mục Google Drive cá nhân của bạn.",
+      referenceFiles: [],
+      driveFolderUrl: "https://drive.google.com/drive/folders/1bRwEUA1hSinE1T5yKc7OVFHly-Nj13P1",
+      submissions: [
+        {
+          studentId: "student_1",
+          driveFolderUrl: "https://drive.google.com/drive/folders/1EO3Yjx1InqB3YHDOcEZlbrCIkxQ4VUmH",
+          driveFolderId: "1EO3Yjx1InqB3YHDOcEZlbrCIkxQ4VUmH",
+          status: "not_submitted",
+          submittedAt: null,
+          files: [],
+          studentNotes: null,
+          grade: null,
+          teacherFeedback: null,
+          teacherCorrectionFile: null,
+          gradedAt: null
+        },
+        {
+          studentId: "student_2", // Tien Pham
+          driveFolderUrl: "https://drive.google.com/drive/folders/17prkypM3CwN12kMuXnE5EPmksjvKsdlA",
+          driveFolderId: "17prkypM3CwN12kMuXnE5EPmksjvKsdlA",
+          status: "not_submitted",
+          submittedAt: null,
+          files: [],
+          studentNotes: null,
+          grade: null,
+          teacherFeedback: null,
+          teacherCorrectionFile: null,
+          gradedAt: null
+        },
+        {
+          studentId: "student_3",
+          driveFolderUrl: "https://drive.google.com/drive/folders/1WTHIrcXGC2s8l5IK7A8BVMF5v3GejVGE",
+          driveFolderId: "1WTHIrcXGC2s8l5IK7A8BVMF5v3GejVGE",
+          status: "not_submitted",
+          submittedAt: null,
+          files: [],
+          studentNotes: null,
+          grade: null,
+          teacherFeedback: null,
+          teacherCorrectionFile: null,
+          gradedAt: null
+        },
+        {
+          studentId: "student_4",
+          driveFolderUrl: "https://drive.google.com/drive/folders/15pVTVQJIwRrEwoxOvBSgD92KxpjW98Wr",
+          driveFolderId: "15pVTVQJIwRrEwoxOvBSgD92KxpjW98Wr",
+          status: "not_submitted",
+          submittedAt: null,
+          files: [],
+          studentNotes: null,
+          grade: null,
+          teacherFeedback: null,
+          teacherCorrectionFile: null,
+          gradedAt: null
+        }
+      ]
+    }
+  ],
 
   // Diễn đàn hỏi đáp: Làm sạch hoàn toàn, sẵn sàng để học viên và cô giáo đặt câu hỏi thật
   discussions: [],
@@ -196,6 +267,17 @@ function getAppData() {
 
       if (savedVersion !== DATA_VERSION) {
         data.version = DATA_VERSION;
+        // Nếu trước đó assignments đang rỗng, tự nạp bài tập Buổi 1 thật từ INITIAL_DATA
+        if (!data.assignments || data.assignments.length === 0) {
+          data.assignments = INITIAL_DATA.assignments;
+        }
+        // Nếu Buổi 1 trong lessons chưa có link folder Drive thật, cập nhật từ INITIAL_DATA
+        if (data.lessons && data.lessons.length > 0 && !data.lessons[0].driveFolderUrl) {
+          data.lessons[0].driveFolderUrl = INITIAL_DATA.lessons[0].driveFolderUrl;
+          data.lessons[0].materialsFolderUrl = INITIAL_DATA.lessons[0].materialsFolderUrl;
+          data.lessons[0].homeworkFolderUrl = INITIAL_DATA.lessons[0].homeworkFolderUrl;
+          data.lessons[0].studentFolders = INITIAL_DATA.lessons[0].studentFolders;
+        }
         saveAppData(data);
       }
 
