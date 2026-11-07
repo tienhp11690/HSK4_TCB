@@ -61,9 +61,9 @@ function showToast(message, type = "success") {
   if (!container) return;
 
   const toast = document.createElement("div");
-  const bgClass = type === "success" ? "bg-emerald-600 text-white" : 
-                 type === "error" ? "bg-red-600 text-white" : 
-                 "bg-amber-600 text-white";
+  const bgClass = type === "success" ? "bg-emerald-600 text-white" :
+    type === "error" ? "bg-red-600 text-white" :
+      "bg-amber-600 text-white";
   const iconName = type === "success" ? "check-circle" : type === "error" ? "alert-circle" : "info";
 
   toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold ${bgClass} transform transition-all duration-300 translate-y-4 opacity-0 z-50`;
@@ -141,11 +141,10 @@ function openIdentitySelectModal(isFirstTime = false) {
         <div>
           <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Dành cho Giáo viên:</div>
           <button onclick="confirmUserIdentity('${teacher.id}')" 
-            class="w-full text-left p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between ${
-              AppState.activeUserId === teacher.id ? 
-              'border-rose-500 bg-rose-50/70 ring-2 ring-rose-200' : 
-              'border-slate-200 hover:border-rose-300 hover:bg-slate-50'
-            }">
+            class="w-full text-left p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between ${AppState.activeUserId === teacher.id ?
+      'border-rose-500 bg-rose-50/70 ring-2 ring-rose-200' :
+      'border-slate-200 hover:border-rose-300 hover:bg-slate-50'
+    }">
             <div class="flex items-center gap-3.5">
               <img src="${teacher.avatar}" alt="${teacher.name}" class="w-12 h-12 rounded-xl object-cover ring-2 ring-rose-500">
               <div>
@@ -168,11 +167,10 @@ function openIdentitySelectModal(isFirstTime = false) {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             ${students.map(s => `
               <button onclick="confirmUserIdentity('${s.id}')" 
-                class="text-left p-3 rounded-2xl border-2 transition-all flex items-center justify-between ${
-                  AppState.activeUserId === s.id ? 
-                  'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-200' : 
-                  'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'
-                }">
+                class="text-left p-3 rounded-2xl border-2 transition-all flex items-center justify-between ${AppState.activeUserId === s.id ?
+        'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-200' :
+        'border-slate-200 hover:border-emerald-300 hover:bg-slate-50'
+      }">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div class="relative flex-shrink-0">
                     <img src="${s.avatar}" alt="${s.name}" class="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200">
@@ -211,7 +209,7 @@ function confirmUserIdentity(userId) {
   AppState.activeUserId = userId;
   localStorage.setItem("HSK4_CONFIRMED_USER", userId);
   localStorage.setItem("HSK4_ACTIVE_USER", userId);
-  
+
   closeModal();
   renderHeaderUserSelector();
   renderNavigation();
@@ -275,10 +273,10 @@ function renderNavigation() {
 
   navContainer.innerHTML = tabs.map(tab => {
     const isActive = AppState.currentTab === tab.id;
-    const activeClasses = isActive 
-      ? "bg-rose-600 text-white shadow-md shadow-rose-200" 
+    const activeClasses = isActive
+      ? "bg-rose-600 text-white shadow-md shadow-rose-200"
       : "bg-white/70 hover:bg-white text-slate-600 hover:text-slate-900 border border-slate-200/60";
-    
+
     return `
       <button onclick="switchTab('${tab.id}')" 
         class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs transition-all duration-200 ${activeClasses} flex-shrink-0">
@@ -600,13 +598,13 @@ function renderScheduleTab(container) {
 
       <!-- Danh sách các buổi học -->
       <div class="space-y-4">
-        ${filteredLessons.length > 0 ? 
-          filteredLessons.map(lesson => renderLessonCard(lesson, activeUser)).join("") : 
-          `<div class="bg-white rounded-3xl p-12 text-center text-slate-400 border border-dashed border-slate-200">
+        ${filteredLessons.length > 0 ?
+      filteredLessons.map(lesson => renderLessonCard(lesson, activeUser)).join("") :
+      `<div class="bg-white rounded-3xl p-12 text-center text-slate-400 border border-dashed border-slate-200">
             <i data-lucide="calendar-x" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i>
             <p class="font-medium text-sm">Không có buổi học nào phù hợp với bộ lọc hiện tại.</p>
           </div>`
-        }
+    }
       </div>
     </div>
   `;
@@ -639,11 +637,10 @@ function renderLessonCard(lesson, activeUser) {
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <!-- Buổi số & Thông tin ngày giờ học -->
         <div class="flex items-start gap-4">
-          <div class="w-14 h-14 rounded-2xl flex-shrink-0 flex flex-col items-center justify-center font-bold shadow-sm ${
-            isCompleted ? 'bg-slate-100 text-slate-600' : 
-            isRescheduledProposed ? 'bg-amber-500 text-white pulse-attention' : 
-            'bg-rose-600 text-white'
-          }">
+          <div class="w-14 h-14 rounded-2xl flex-shrink-0 flex flex-col items-center justify-center font-bold shadow-sm ${isCompleted ? 'bg-slate-100 text-slate-600' :
+      isRescheduledProposed ? 'bg-amber-500 text-white pulse-attention' :
+        'bg-rose-600 text-white'
+    }">
             <span class="text-[10px] uppercase tracking-wider font-semibold">Buổi</span>
             <span class="text-xl font-black">${lesson.number}</span>
           </div>
@@ -675,11 +672,10 @@ function renderLessonCard(lesson, activeUser) {
 
           ${!isCompleted ? `
             <button onclick="openRescheduleModal('${lesson.id}')" 
-              class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                isRescheduledProposed ? 
-                'bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-200' : 
-                'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
-              }">
+              class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${isRescheduledProposed ?
+        'bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-200' :
+        'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
+      }">
               <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
               <span>${isRescheduledProposed ? 'Xem Biểu Quyết Báo Bận' : 'Báo Bận / Đổi Ngày'}</span>
             </button>
@@ -786,24 +782,24 @@ function renderRescheduleNotificationBox(lesson, activeUser) {
         <div class="text-[11px] font-bold text-amber-900 mb-1.5">Tình trạng biểu quyết của 5 thành viên (Cô giáo + 4 Học sinh):</div>
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
           ${r.votes.map(v => {
-            const isAgree = v.decision === "agree";
-            const isPending = v.decision === "pending";
-            const userObj = AppState.data.users.find(u => u.id === v.userId);
-            return `
+    const isAgree = v.decision === "agree";
+    const isPending = v.decision === "pending";
+    const userObj = AppState.data.users.find(u => u.id === v.userId);
+    return `
               <div class="bg-white/95 p-2 rounded-xl border border-amber-200 text-center text-xs shadow-sm">
                 <div class="font-extrabold text-slate-800 truncate">${v.userName}</div>
                 <div class="text-[10px] text-slate-400">${userObj ? (userObj.role === 'teacher' ? 'Cô giáo' : `#${userObj.orderNumber}`) : ''}</div>
                 <div class="mt-1">
-                  ${isAgree ? 
-                    '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i data-lucide="check" class="w-3 h-3"></i> Đồng ý</span>' : 
-                    isPending ? 
-                    '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full"><i data-lucide="loader" class="w-3 h-3"></i> Chờ duyệt</span>' : 
-                    '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full"><i data-lucide="x" class="w-3 h-3"></i> Bận</span>'
-                  }
+                  ${isAgree ?
+        '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i data-lucide="check" class="w-3 h-3"></i> Đồng ý</span>' :
+        isPending ?
+          '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full"><i data-lucide="loader" class="w-3 h-3"></i> Chờ duyệt</span>' :
+          '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full"><i data-lucide="x" class="w-3 h-3"></i> Bận</span>'
+      }
                 </div>
               </div>
             `;
-          }).join("")}
+  }).join("")}
         </div>
       </div>
 
@@ -848,7 +844,7 @@ function voteReschedule(lessonId, decision) {
 
   voteItem.decision = decision;
   voteItem.note = decision === "agree" ? "Đã đồng ý đổi" : "Giờ này bận";
-  
+
   // Ghi nhật ký
   logActivity("vote", `${activeUser.name} biểu quyết dời Buổi ${lesson.number}`, `${decision === "agree" ? "Đồng ý" : "Bận"} với đề xuất dời sang ngày ${lesson.reschedule.proposedDate}`);
 
@@ -864,13 +860,13 @@ function finalizeReschedule(lessonId) {
 
   const r = lesson.reschedule;
   const oldDate = lesson.date;
-  
+
   lesson.date = r.proposedDate;
   lesson.dayOfWeek = r.proposedDayOfWeek;
   lesson.time = r.proposedTime;
   lesson.status = "rescheduled";
   lesson.topicNotes += ` (Đã dời từ ngày ${oldDate} sang ${r.proposedDate} do: ${r.reason})`;
-  
+
   // Ghi nhật ký
   logActivity("reschedule", `Chốt dời lịch Buổi ${lesson.number}`, `${activeUser.name} đã chốt lịch mới: ${r.proposedDayOfWeek}, ${r.proposedDate}`);
 
@@ -1029,9 +1025,8 @@ function renderMaterialFilterBtn(filterId, label) {
   const isActive = (AppState.materialsFilter || "all") === filterId;
   return `
     <button onclick="setMaterialFilter('${filterId}')" 
-      class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-        isActive ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-      }">
+      class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${isActive ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+    }">
       ${label}
     </button>
   `;
@@ -1173,9 +1168,9 @@ function renderMaterialItemRow(m) {
   const isAudio = m.type === "audio";
   const isVideo = m.type === "video";
   const icon = isAudio ? "music" : isVideo ? "video" : isPdf ? "file-text" : "file";
-  const iconColor = isAudio ? "text-emerald-600 bg-emerald-50 border-emerald-200" : 
-                    isVideo ? "text-purple-600 bg-purple-50 border-purple-200" : 
-                    isPdf ? "text-rose-600 bg-rose-50 border-rose-200" : "text-blue-600 bg-blue-50 border-blue-200";
+  const iconColor = isAudio ? "text-emerald-600 bg-emerald-50 border-emerald-200" :
+    isVideo ? "text-purple-600 bg-purple-50 border-purple-200" :
+      isPdf ? "text-rose-600 bg-rose-50 border-rose-200" : "text-blue-600 bg-blue-50 border-blue-200";
 
   return `
     <div class="bg-slate-50/90 hover:bg-white p-3 rounded-2xl border border-slate-200/80 hover:border-indigo-300 hover:shadow-sm transition flex items-center justify-between gap-3">
@@ -1468,7 +1463,7 @@ function renderHomeworkTab(container) {
           </thead>
           <tbody class="divide-y divide-slate-100">
             ${assignments.map(a => {
-              return `
+    return `
                 <tr class="hover:bg-slate-50/80 transition">
                   <td class="py-3 px-3 font-bold text-slate-900">
                     <span class="text-rose-600 mr-1.5">#${a.lessonNumber}</span> ${a.title}
@@ -1477,27 +1472,27 @@ function renderHomeworkTab(container) {
                     ${formatDisplayDate(a.deadline.split(" ")[0])}
                   </td>
                   ${students.map(s => {
-                    const sub = a.submissions.find(subItem => subItem.studentId === s.id);
-                    const status = sub ? sub.status : "not_submitted";
-                    const isGraded = status === "graded";
-                    const isSubmitted = status === "submitted";
-                    return `
+      const sub = a.submissions.find(subItem => subItem.studentId === s.id);
+      const status = sub ? sub.status : "not_submitted";
+      const isGraded = status === "graded";
+      const isSubmitted = status === "submitted";
+      return `
                       <td class="py-3 px-3 text-center">
-                        ${isGraded ? 
-                          `<span class="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[11px]" title="${sub.grade}">
+                        ${isGraded ?
+          `<span class="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[11px]" title="${sub.grade}">
                             <i data-lucide="check" class="w-3 h-3"></i> ${sub.grade || 'Đã chấm'}
-                          </span>` : 
-                          isSubmitted ? 
-                          `<span class="inline-flex items-center gap-1 font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full text-[11px]">
+                          </span>` :
+          isSubmitted ?
+            `<span class="inline-flex items-center gap-1 font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full text-[11px]">
                             <i data-lucide="clock" class="w-3 h-3"></i> Chờ chấm
-                          </span>` : 
-                          `<span class="inline-flex items-center gap-1 font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full text-[11px]">
+                          </span>` :
+            `<span class="inline-flex items-center gap-1 font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full text-[11px]">
                             <i data-lucide="alert-circle" class="w-3 h-3"></i> Chưa nộp
                           </span>`
-                        }
+        }
                       </td>
                     `;
-                  }).join("")}
+    }).join("")}
                   <td class="py-3 px-3 text-right">
                     <div class="flex items-center justify-end gap-1.5">
                       <a href="${a.driveFolderUrl}" target="_blank" title="Mở thư mục trên Google Drive"
@@ -1516,7 +1511,7 @@ function renderHomeworkTab(container) {
                   </td>
                 </tr>
               `;
-            }).join("")}
+  }).join("")}
           </tbody>
         </table>
         ` : `
@@ -1551,14 +1546,14 @@ function renderHomeworkTab(container) {
         </div>
 
         <div class="space-y-3.5">
-          ${assignments.length > 0 ? 
-            assignments.map(a => renderAssignmentDetailCard(a, activeUser, isTeacher, students)).join("") : 
-            `<div class="bg-white rounded-3xl p-12 text-center text-slate-400 border border-dashed border-slate-200">
+          ${assignments.length > 0 ?
+      assignments.map(a => renderAssignmentDetailCard(a, activeUser, isTeacher, students)).join("") :
+      `<div class="bg-white rounded-3xl p-12 text-center text-slate-400 border border-dashed border-slate-200">
               <i data-lucide="folder-plus" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i>
               <p class="font-bold text-slate-700 text-sm mb-1">Chưa có bài tập nào được giao</p>
               <p class="text-xs text-slate-400">Khi cô giáo tạo bài tập mới, hệ thống sẽ tự động tạo thư mục trên Google Drive cho từng học viên nộp bài.</p>
             </div>`
-          }
+    }
         </div>
       </div>
     </div>
@@ -1606,10 +1601,9 @@ function renderAssignmentDetailCard(assignment, activeUser, isTeacher, students)
         
         <div class="flex items-start sm:items-center gap-3.5 min-w-0">
           <!-- Buổi số -->
-          <div class="w-12 h-12 rounded-2xl flex-shrink-0 flex flex-col items-center justify-center font-bold shadow-sm ${
-            submittedCount === totalStudents && pendingGradeCount === 0 ? 'bg-emerald-600 text-white' : 
-            pendingGradeCount > 0 ? 'bg-amber-500 text-white' : 'bg-rose-600 text-white'
-          }">
+          <div class="w-12 h-12 rounded-2xl flex-shrink-0 flex flex-col items-center justify-center font-bold shadow-sm ${submittedCount === totalStudents && pendingGradeCount === 0 ? 'bg-emerald-600 text-white' :
+      pendingGradeCount > 0 ? 'bg-amber-500 text-white' : 'bg-rose-600 text-white'
+    }">
             <span class="text-[9px] uppercase tracking-wider font-semibold">Buổi</span>
             <span class="text-lg font-black">${assignment.lessonNumber}</span>
           </div>
@@ -1630,9 +1624,8 @@ function renderAssignmentDetailCard(assignment, activeUser, isTeacher, students)
               </span>
               
               <!-- Tiến độ nộp bài của cả lớp -->
-              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-extrabold text-[11px] ${
-                submittedCount === totalStudents ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
-              }">
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-extrabold text-[11px] ${submittedCount === totalStudents ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
+    }">
                 <i data-lucide="users" class="w-3 h-3"></i> Đã nộp: ${submittedCount}/${totalStudents} bạn
               </span>
 
@@ -1740,15 +1733,15 @@ function renderAssignmentDetailCard(assignment, activeUser, isTeacher, students)
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               ${students.map(student => {
-                const sub = assignment.submissions.find(s => s.studentId === student.id) || {
-                  studentId: student.id,
-                  status: "not_submitted",
-                  files: [],
-                  grade: null,
-                  teacherFeedback: null
-                };
-                return renderStudentSubmissionBox(assignment.id, assignment.lessonNumber, student, sub, activeUser, isTeacher);
-              }).join("")}
+      const sub = assignment.submissions.find(s => s.studentId === student.id) || {
+        studentId: student.id,
+        status: "not_submitted",
+        files: [],
+        grade: null,
+        teacherFeedback: null
+      };
+      return renderStudentSubmissionBox(assignment.id, assignment.lessonNumber, student, sub, activeUser, isTeacher);
+    }).join("")}
             </div>
           </div>
 
@@ -1861,9 +1854,8 @@ function renderStudentSubmissionBox(assignmentId, lessonNumber, student, submiss
 
         ${(isMe || isTeacher) ? `
           <button onclick="openSubmitHomeworkModal('${assignmentId}', '${student.id}')" 
-            class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition ${
-              isSubmitted ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-            }">
+            class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition ${isSubmitted ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+      }">
             <i data-lucide="upload" class="w-3 h-3"></i>
             <span>${isSubmitted ? 'Nộp lại / Bổ sung file' : 'Nộp bài lên Drive'}</span>
           </button>
@@ -2144,14 +2136,14 @@ function renderActivityTab(container) {
       <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
         <div class="relative border-l-2 border-slate-200 pl-6 ml-4 space-y-6">
           ${logs.length > 0 ? logs.map(log => {
-            const isReschedule = log.type === "reschedule";
-            const isSub = log.type === "submission";
-            const isGrade = log.type === "grading";
-            const isVote = log.type === "vote";
-            const icon = isReschedule ? "alert-triangle" : isSub ? "upload-cloud" : isGrade ? "check-circle" : isVote ? "check" : "message-square";
-            const iconBg = isReschedule ? "bg-amber-500 text-white" : isSub ? "bg-blue-600 text-white" : isGrade ? "bg-emerald-600 text-white" : "bg-purple-600 text-white";
+    const isReschedule = log.type === "reschedule";
+    const isSub = log.type === "submission";
+    const isGrade = log.type === "grading";
+    const isVote = log.type === "vote";
+    const icon = isReschedule ? "alert-triangle" : isSub ? "upload-cloud" : isGrade ? "check-circle" : isVote ? "check" : "message-square";
+    const iconBg = isReschedule ? "bg-amber-500 text-white" : isSub ? "bg-blue-600 text-white" : isGrade ? "bg-emerald-600 text-white" : "bg-purple-600 text-white";
 
-            return `
+    return `
               <div class="relative">
                 <span class="absolute -left-[35px] top-1 w-6 h-6 rounded-full ${iconBg} flex items-center justify-center text-[10px] shadow">
                   <i data-lucide="${icon}" class="w-3.5 h-3.5"></i>
@@ -2172,7 +2164,7 @@ function renderActivityTab(container) {
                 </div>
               </div>
             `;
-          }).join("") : `
+  }).join("") : `
             <div class="py-10 text-center text-slate-400 -ml-6">
               <i data-lucide="history" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i>
               <p class="font-bold text-slate-700 text-sm mb-1">Chưa có hoạt động nào được ghi nhận</p>
@@ -2535,7 +2527,7 @@ function openQuickUpdateStudentModal() {
 function handleQuickUpdateStudents(e) {
   e.preventDefault();
   const students = AppState.data.users.filter(u => u.role === "student");
-  
+
   students.forEach(s => {
     const nameEl = document.getElementById(`quick-name-${s.id}`);
     const cnEl = document.getElementById(`quick-cn-${s.id}`);
@@ -3529,11 +3521,11 @@ function openScriptCodeModal() {
   const codeArea = document.getElementById("script-code-copy-area");
   if (codeArea) {
     codeArea.value = `// GOOGLE APPS SCRIPT CHO WEB APP HSK4
-var PARENT_FOLDER_ID = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
+var FIXED_PARENT_FOLDER_ID = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
 
 function doGet(e) {
   try {
-    var pFolder = getTargetFolder("18y3IbrKVibG9z9RzgQvVjz-jww54SelP");
+    var pFolder = getTargetFolder(FIXED_PARENT_FOLDER_ID);
     return ContentService.createTextOutput(JSON.stringify({
       status: "ok",
       message: "Kết nối thành công với Google Drive!",
@@ -3666,7 +3658,7 @@ function formatDisplayDate(dateStr) {
     if (parts.length === 3) {
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
-  } catch (e) {}
+  } catch (e) { }
   return dateStr;
 }
 

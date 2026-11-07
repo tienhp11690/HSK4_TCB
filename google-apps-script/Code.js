@@ -6,19 +6,15 @@
  * Folder ID: 18y3IbrKVibG9z9RzgQvVjz-jww54SelP
  */
 
-// 1. Cấu hình ID thư mục cha cố định
-var PARENT_FOLDER_ID = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
+// 1. Cấu hình ID thư mục cha cố định trên Google Drive
+var FIXED_PARENT_FOLDER_ID = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
 
 /**
  * Endpoint kiểm tra kết nối (GET Request)
  */
 function doGet(e) {
   try {
-    var folderId = "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
-    if (typeof PARENT_FOLDER_ID !== "undefined" && PARENT_FOLDER_ID) {
-      folderId = PARENT_FOLDER_ID;
-    }
-
+    var folderId = FIXED_PARENT_FOLDER_ID;
     var parentName = "HSK4_Parent_Folder";
     try {
       var pFolder = getTargetFolder(folderId);
@@ -61,10 +57,7 @@ function doPost(e) {
     }
 
     var action = requestData.action || "";
-    var customParentId = requestData.parentFolderId || "18y3IbrKVibG9z9RzgQvVjz-jww54SelP";
-    if (typeof PARENT_FOLDER_ID !== "undefined" && PARENT_FOLDER_ID) {
-      customParentId = PARENT_FOLDER_ID;
-    }
+    var customParentId = requestData.parentFolderId || FIXED_PARENT_FOLDER_ID;
 
     // Lấy thư mục cha đã được cấu hình trên Google Drive
     var parentFolder = getTargetFolder(customParentId);
